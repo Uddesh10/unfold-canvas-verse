@@ -6,7 +6,7 @@ import { Footer } from "@/components/Footer";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Reveal } from "@/components/Reveal";
 import { Gallery } from "@/components/Gallery";
-import { storiesGallery } from "@/data/galleries";
+import { useGalleryStore } from "@/hooks/useGalleryStore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -23,6 +23,7 @@ const fieldNotes = [
 const Stories = () => {
   useLenis();
   useTheme("stories");
+  const { items } = useGalleryStore("stories");
 
   return (
     <div className="relative">
@@ -96,10 +97,10 @@ const Stories = () => {
             <Reveal>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="font-bold-display text-3xl md:text-4xl">EDITION 07 // FRAMES</h2>
-                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{storiesGallery.length} captures</span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{items.length} captures</span>
               </div>
             </Reveal>
-            <Gallery items={storiesGallery} variant="collage" />
+            <Gallery items={items} variant="collage" />
           </div>
         </section>
 

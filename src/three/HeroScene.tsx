@@ -107,9 +107,10 @@ function Scene({ onHover, hovered }: { onHover: (k: string | null) => void; hove
   const rotations = [0.18, 0, -0.18];
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 5, 5]} intensity={1.1} />
-      <directionalLight position={[-4, -2, 3]} intensity={0.4} color="#ffd6a8" />
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[5, 5, 5]} intensity={1.0} color="#ff4fcf" />
+      <directionalLight position={[-4, -2, 3]} intensity={0.6} color="#22e3ff" />
+      <pointLight position={[0, 3, 4]} intensity={0.8} color="#a85bff" />
       <Particles />
       {verticals.map((v, i) => (
         <Suspense key={v.key} fallback={null}>

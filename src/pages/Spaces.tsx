@@ -6,7 +6,7 @@ import { Footer } from "@/components/Footer";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Reveal } from "@/components/Reveal";
 import { Gallery } from "@/components/Gallery";
-import { spacesGallery } from "@/data/galleries";
+import { useGalleryStore } from "@/hooks/useGalleryStore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -15,6 +15,7 @@ const clients = ["Casa Lume", "Hauser Atelier", "North Wing", "Volta House", "St
 const Spaces = () => {
   useLenis();
   useTheme("spaces");
+  const { items } = useGalleryStore("spaces");
 
   return (
     <div className="relative">
@@ -72,10 +73,10 @@ const Spaces = () => {
             <Reveal>
               <div className="flex items-baseline justify-between mb-10 border-b border-border pb-4">
                 <h2 className="font-light text-2xl tracking-tight">Selected projects</h2>
-                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{spacesGallery.length} works · 2022—2025</span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{items.length} works · 2022—2025</span>
               </div>
             </Reveal>
-            <Gallery items={spacesGallery} variant="grid" />
+            <Gallery items={items} variant="grid" />
           </div>
         </section>
 

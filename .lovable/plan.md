@@ -1,98 +1,85 @@
-# Unfold Studios — Cinematic 3D Portfolio
+## Plan — Hero recolor + new showcase element + local admin
 
-A luxury multi-brand photography site with a Three.js hero entry and three distinct vertical pages, each with its own visual identity. All shared content (about, process, FAQ, booking) lives on the homepage and is reachable from every vertical.
+### 1. New hero color theme (no gold)
+Update default `:root` palette in `src/index.css` to a richer, more "happening" cinematic scheme — deep midnight indigo background with **magenta → violet → cyan aurora** accents.
 
-## Site Map
+- `--background`: `240 25% 6%`
+- `--theme-1`: magenta `320 90% 62%`
+- `--theme-2`: violet `265 85% 65%`
+- `--theme-3`: cyan `190 95% 60%`
+- `--gradient-hero`: aurora radial gradients
+- `--gradient-text`: magenta → cyan
+- `HeroScene.tsx`: swap warm directional light for magenta + cyan rim lights; glow planes use new theme colors
+- Per-vertical themes (`weddings`, `spaces`, `stories`) untouched
 
-```text
-/                  Hero 3D entry + About + Process + FAQ + Booking + Contact
-/weddings          Unfold Studios — warm, romantic, gold/champagne
-/spaces            Unfold Spaces — minimal, architectural, neutral
-/stories           Unfold Stories — raw, urban, high-contrast
-```
+**Keep** the three pill buttons + "Est. 2016" tag in the hero — only the colors change.
 
-A persistent glass top nav (logo + 3 verticals + Book) appears on all pages. Each vertical page links back to home anchors (#about, #process, #book).
+### 2. Replace the big "Three perspectives" boxes
+Remove the three large 3:4 cards on the home page and replace with a new eye-catching element:
 
-## Homepage Experience
+**A horizontal cinematic showcase strip** — full-bleed, edge-to-edge, with:
+- A single large tilted photo "stage" in the center that auto-cycles through one signature image per vertical (cross-fade every ~4s)
+- Big rotating display number (01 / 02 / 03) and vertical name overlaid
+- A thin progress bar showing cycle position
+- Left/right arrow controls + clickable thumbnail dots
+- Subtle parallax tilt on mouse move (CSS transform, no Three.js)
+- Click the stage → navigates to that vertical
+- Below: a single-line marquee of project keywords ("Tuscany · Milan · Shinjuku · 02:14 · Veil · Marble · Neon …") drifting slowly
 
-1. **Cinematic Hero (Three.js)**
-   - Fullscreen WebGL canvas: three floating glass panels in 3D space, each textured with a representative photo for one vertical.
-   - Subtle camera drift, soft bloom, ambient particles/dust motes.
-   - Mouse parallax tilts the whole scene; hovering a panel pushes it forward, intensifies its themed glow (gold / neutral-green / neon), and reveals its label.
-   - Click a panel → fluid transition (panel zooms to fill, color wash, route change) into that vertical.
-   - Brand mark "UNFOLD STUDIOS" + tagline "storytelling through three perspectives" overlaid with staggered fade-in.
-   - Custom cursor (dot + ring) active site-wide; grows over interactive elements.
+This replaces the grid with one bold, animated, cinematic moment.
 
-2. **About** — Glassmorphic card, brand story behind "Unfold," subtle 3D hover tilt.
+### 3. Photographer info section
+New section between Hero and the new showcase:
+- Left: portrait (Unsplash placeholder)
+- Right: name, role, 2–3 paragraph bio, location, signature, IG/Behance/Email icons
+- Stat row: "200+ weddings · 14 countries · 9 years"
+- Data lives in `src/data/photographer.ts` (also editable from admin)
 
-3. **Process Timeline** — 4 steps (Consultation, Agreement, Capturing, Delivery) revealed progressively as the user scrolls; animated connecting line.
+### 4. Local admin page (no backend)
+A `/admin` route, password-gated entirely client-side. No Supabase, no server.
 
-4. **FAQ** — Accordion with frosted-glass items, smooth expand/collapse.
+**Auth (client-only):**
+- Hard-coded password constant in code (e.g. `unfold2026`) — user can change it in one place.
+- `/admin/login` form: enter password → on match, sets `sessionStorage.adminAuthed = true` → redirect to `/admin`.
+- `RequireAdmin` guard checks the flag; otherwise redirects to login.
+- "Logout" clears the flag.
+- ⚠️ Honest caveat surfaced in the plan: client-side passwords can be read in the bundle by anyone determined. Fine for personal portfolio gating, not real security. If real security is needed later, switch to Lovable Cloud auth.
 
-5. **Booking Form** — Glass form: Name, Email, Phone, Category (select: Weddings / Spaces / Stories), Date, Message. Zod validation, animated field states, success state on submit (no backend yet). CTA: "Start Your Story".
+**Storage:**
+- All edits persisted to `localStorage` under `unfold:gallery:weddings`, `unfold:gallery:spaces`, `unfold:gallery:stories`, and `unfold:photographer`.
+- On first load, store is seeded from the existing defaults in `src/data/galleries.ts` and `src/data/photographer.ts`.
+- A `useGalleryStore(vertical)` hook (tiny custom store w/ `useSyncExternalStore`) gives reactive reads + writes; gallery pages and the home showcase use it.
 
-6. **Contact** — Email, phone, Instagram links per vertical, minimal premium layout.
+**Admin UI (`/admin`):**
+- Tabs: **Weddings · Spaces · Stories · Photographer**
+- Each gallery tab: list rows with thumbnail preview, image URL input, alt text, caption, ↑/↓ reorder, delete, "+ Add photo" button
+- Photographer tab: name, role, bio (textarea), portrait URL, location, IG/email links, stats fields
+- "Reset to defaults" button per tab
+- "Export JSON" / "Import JSON" buttons so the user can back up or move data between browsers (since it's localStorage-only)
+- Toast feedback on save
 
-7. **Footer** — Brand mark, vertical links, socials, copyright.
+### Technical section
 
-## Vertical Pages
+**Files to create**
+- `src/components/sections/Showcase.tsx` (new cinematic strip replacing the 3 boxes)
+- `src/components/sections/Photographer.tsx`
+- `src/data/photographer.ts`
+- `src/lib/adminAuth.ts` (password constant + session helpers)
+- `src/lib/localStore.ts` (typed localStorage helpers + subscribe)
+- `src/hooks/useGalleryStore.ts`, `src/hooks/usePhotographerStore.ts`
+- `src/components/RequireAdmin.tsx`
+- `src/pages/Admin.tsx`, `src/pages/AdminLogin.tsx`
+- `src/components/admin/GalleryEditor.tsx`
+- `src/components/admin/PhotographerEditor.tsx`
 
-All three share a structure (hero → portfolio gallery → testimonials → CTA → footer) but feel like distinct sub-brands through type, color, motion, and layout.
+**Files to edit**
+- `src/index.css` — new aurora palette (default theme only)
+- `src/three/HeroScene.tsx` — magenta/cyan lighting
+- `src/pages/Index.tsx` — drop the old grid section, mount `<Photographer />` and `<Showcase />`
+- `src/pages/Weddings.tsx`, `Spaces.tsx`, `Stories.tsx` — read photos via `useGalleryStore`
+- `src/App.tsx` — add `/admin` and `/admin/login` routes
 
-### /weddings — Unfold Studios (Warm/Romantic)
-- Palette: gold, champagne, soft pink gradients on cream.
-- Type: elegant serif display (Cormorant/Playfair) + light sans body.
-- Hero: large fade-in image with golden light leak overlay, soft music-video pacing.
-- Gallery: editorial masonry, slow fade/scale on scroll, lightbox with swipe.
-- Testimonials: quote cards with handwritten-style accents.
+**No backend, no new dependencies.**
 
-### /spaces — Unfold Spaces (Minimal/Architectural)
-- Palette: beige, white, warm grey, muted sage.
-- Type: clean geometric sans (Inter/Geist), generous whitespace.
-- Hero: symmetric composition, single statement line, micro-motion only.
-- Gallery: strict CSS grid, equal tiles, subtle reveal, captions with project metadata (location, year).
-- No testimonials section — replaced with a "Selected Clients" wordmark strip to reinforce minimalism.
-
-### /stories — Unfold Stories (Raw/Urban)
-- Palette: near-black, off-white, neon magenta/cyan accents, film grain overlay.
-- Type: bold condensed display (Anton/Archivo Black) + mono captions.
-- Hero: high-contrast image, glitch/marquee tagline, faster scroll feel.
-- Gallery: asymmetric collage, varied tile sizes, snappy transitions, occasional full-bleed quotes.
-- Testimonials replaced with a scrolling "Field Notes" ticker.
-
-Each vertical has a sticky "Book a Shoot" button that scrolls to `/#book` with the category pre-selected.
-
-## Visual System
-
-- **Glassmorphism:** `backdrop-blur` + low-opacity surface + 1px inner border + soft outer glow tinted to the active theme.
-- **3D depth:** Framer Motion tilt on cards, parallax layers on hero sections, scroll-linked transforms.
-- **Custom cursor:** small dot, lagging ring, theme-tinted per page.
-- **Smooth scroll:** Lenis wired into Framer Motion's scroll tracking.
-- **Transitions:** AnimatePresence between routes — wash of theme color, then fade.
-- **Performance:** lazy-loaded gallery images (Unsplash, sized via URL params), WebGL paused when offscreen, reduced-motion fallbacks.
-
-## Imagery
-
-Curated Unsplash photos per vertical (warm wedding shots, minimal interiors, gritty street). Loaded with `loading="lazy"`, blurred-up placeholders, and width hints. All easy to swap for real photos later via a single `galleries.ts` data file.
-
-## Technical Notes
-
-- Stack as-is: React 18 + Vite + Tailwind + TypeScript (Lovable doesn't run Next.js; React Router covers the routing needs).
-- Add: `three`, `@react-three/fiber@^8.18`, `@react-three/drei@^9.122`, `framer-motion`, `@studio-freight/lenis`, `zod`, `react-hook-form`.
-- Tailwind config extended with theme tokens per vertical (CSS variables swapped via a `data-theme` attribute on `<html>`), plus the standard fade/scale/slide keyframes.
-- New files (high level):
-  - `src/three/HeroScene.tsx` — R3F canvas with three panels, lighting, post-processing.
-  - `src/components/CustomCursor.tsx`, `GlassCard.tsx`, `Nav.tsx`, `Footer.tsx`, `Lightbox.tsx`, `SectionReveal.tsx`.
-  - `src/components/sections/` — About, Process, FAQ, Booking, Contact.
-  - `src/data/galleries.ts`, `src/data/themes.ts`, `src/data/faq.ts`.
-  - `src/pages/Weddings.tsx`, `Spaces.tsx`, `Stories.tsx` (+ routes added to `App.tsx`).
-  - `src/hooks/useLenis.ts`, `useTilt.ts`.
-- Booking form: client-side only, Zod schema, fake async submit with success animation. Backend can be wired later.
-- SEO: per-route `<title>`/meta via a small `Seo.tsx` helper, semantic landmarks, alt text on every image.
-- Accessibility: focus-visible rings on glass elements, accordion keyboard support, `prefers-reduced-motion` disables parallax/auto-camera and softens transitions.
-
-## Out of Scope (for this build)
-
-- Real backend / email delivery for bookings.
-- CMS for galleries (data lives in a typed file you can edit).
-- Auth, payments, blog.
+### Open question (default if no answer)
+- Default admin password: I'll set it to `unfold2026`. Tell me if you want a different one.

@@ -6,7 +6,7 @@ import { Footer } from "@/components/Footer";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Reveal } from "@/components/Reveal";
 import { Gallery } from "@/components/Gallery";
-import { weddingsGallery } from "@/data/galleries";
+import { useGalleryStore } from "@/hooks/useGalleryStore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -19,7 +19,7 @@ const testimonials = [
 const Weddings = () => {
   useLenis();
   useTheme("weddings");
-
+  const { items } = useGalleryStore("weddings");
   return (
     <div className="relative">
       <Seo title="Unfold Studios — Wedding Photography" description="Romantic, cinematic wedding photography. Editorial coverage, fine-art delivery, worldwide." path="/weddings" />
@@ -74,7 +74,7 @@ const Weddings = () => {
                 <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground hidden md:block">2023 — 2025</span>
               </div>
             </Reveal>
-            <Gallery items={weddingsGallery} variant="masonry" />
+            <Gallery items={items} variant="masonry" />
           </div>
         </section>
 

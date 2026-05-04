@@ -1,31 +1,59 @@
 // Tiny reactive localStorage store using useSyncExternalStore.
-import { useSyncExternalStore } from "react";
+// IMPORTANT: getSnapshot must return a stable reference between calls when
+// the underlying data hasn't changed, otherwise React throws
+// "getSnapshot should be cached to avoid an infinite loop".
+import { useSyncExternalStore, useCallback } from "react";
 
 type Listener = () => void;
 const listenersByKey = new Map<string, Set<Listener>>();
+const cacheByKey = new Map<string, { raw: string | null; value: unknown }>();
 
 function notify(key: string) {
+  // invalidate cache so next getSnapshot reparses
+  cacheByKey.delete(key);
   listenersByKey.get(key)?.forEach((l) => l());
 }
 
 export function readStore<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
+  const raw = (() => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  })();
+  const cached = cacheByKey.get(key);
+  if (cached && cached.raw === raw) return cached.value as T;
+  let value: T;
+  if (raw === null) {
+    value = fallback;
+  } else {
+    try {
+      value = JSON.parse(raw) as T;
+    } catch {
+      value = fallback;
+    }
   }
+  cacheByKey.set(key, { raw, value });
+  return value;
 }
 
 export function writeStore<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* ignore quota errors */
+  }
   notify(key);
 }
 
 export function clearStore(key: string) {
-  localStorage.removeItem(key);
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
   notify(key);
 }
 
@@ -37,7 +65,10 @@ function subscribe(key: string, cb: Listener) {
   }
   set.add(cb);
   const onStorage = (e: StorageEvent) => {
-    if (e.key === key) cb();
+    if (e.key === key || e.key === null) {
+      cacheByKey.delete(key);
+      cb();
+    }
   };
   window.addEventListener("storage", onStorage);
   return () => {
@@ -47,10 +78,9 @@ function subscribe(key: string, cb: Listener) {
 }
 
 export function useLocalStore<T>(key: string, fallback: T): [T, (v: T) => void] {
-  const value = useSyncExternalStore(
-    (cb) => subscribe(key, cb),
-    () => readStore(key, fallback),
-    () => fallback,
-  );
-  return [value, (v: T) => writeStore(key, v)];
+  const sub = useCallback((cb: Listener) => subscribe(key, cb), [key]);
+  const get = useCallback(() => readStore(key, fallback), [key, fallback]);
+  const value = useSyncExternalStore(sub, get, () => fallback);
+  const setter = useCallback((v: T) => writeStore(key, v), [key]);
+  return [value, setter];
 }

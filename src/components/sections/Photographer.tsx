@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Mail, Instagram, MapPin } from "lucide-react";
+import { Mail, Instagram, MapPin, Palette } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { usePhotographerStore } from "@/hooks/usePhotographerStore";
 
@@ -62,6 +62,11 @@ export const Photographer = () => {
               <a href={p.instagram} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-primary transition-colors" data-cursor-hover>
                 <Instagram className="h-3.5 w-3.5" /> Instagram
               </a>
+              {p.behance && (
+                <a href={p.behance} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-primary transition-colors" data-cursor-hover>
+                  <Palette className="h-3.5 w-3.5" /> Behance
+                </a>
+              )}
             </div>
           </Reveal>
           <Reveal delay={0.3}>

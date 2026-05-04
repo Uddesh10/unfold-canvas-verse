@@ -18,7 +18,7 @@ function Core() {
     <Float speed={1.1} rotationIntensity={0.4} floatIntensity={0.6}>
       <mesh ref={ref}>
         <icosahedronGeometry args={[1.35, 6]} />
-        {/* @ts-expect-error drei prop */}
+        
         <MeshDistortMaterial
           color="#ff2ea0"
           emissive="#a85bff"

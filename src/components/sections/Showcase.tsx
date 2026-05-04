@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { verticals } from "@/data/themes";
 import { Reveal } from "@/components/Reveal";
 
@@ -27,6 +27,8 @@ export const Showcase = () => {
     setTilt({ x: -y * 8, y: x * 12 });
   };
   const onLeave = () => setTilt({ x: 0, y: 0 });
+  const prev = () => setI((x) => (x - 1 + verticals.length) % verticals.length);
+  const next = () => setI((x) => (x + 1) % verticals.length);
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
@@ -131,6 +133,24 @@ export const Showcase = () => {
                 <div className="absolute top-5 right-5 glass-strong rounded-full p-3 group-hover:rotate-45 transition-transform">
                   <ArrowUpRight className="h-4 w-4" />
                 </div>
+
+                {/* Prev / Next arrows */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); prev(); }}
+                  data-cursor-hover
+                  aria-label="Previous studio"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 glass-strong rounded-full p-3 hover:scale-110 transition-transform"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); next(); }}
+                  data-cursor-hover
+                  aria-label="Next studio"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 glass-strong rounded-full p-3 hover:scale-110 transition-transform"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
 
                 <div className="absolute bottom-0 inset-x-0 p-7 md:p-10">
                   <AnimatePresence mode="wait">

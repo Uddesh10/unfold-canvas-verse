@@ -5,6 +5,8 @@ import { LogOut, Download, Upload, ExternalLink } from "lucide-react";
 import { signOutAdmin } from "@/lib/adminAuth";
 import { GalleryEditor } from "@/components/admin/GalleryEditor";
 import { PhotographerEditor } from "@/components/admin/PhotographerEditor";
+import { FaqEditor } from "@/components/admin/FaqEditor";
+import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
 import { Seo } from "@/components/Seo";
 import { useRef } from "react";
 import { toast } from "@/components/ui/use-toast";
@@ -14,6 +16,8 @@ const STORAGE_KEYS = [
   "unfold:gallery:spaces",
   "unfold:gallery:stories",
   "unfold:photographer",
+  "unfold:faqs",
+  "unfold:submissions",
 ];
 
 const Admin = () => {
@@ -101,11 +105,13 @@ const Admin = () => {
         </p>
 
         <Tabs defaultValue="weddings">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="weddings">Weddings</TabsTrigger>
             <TabsTrigger value="spaces">Spaces</TabsTrigger>
             <TabsTrigger value="stories">Stories</TabsTrigger>
             <TabsTrigger value="photographer">Photographer</TabsTrigger>
+            <TabsTrigger value="faq">FAQ</TabsTrigger>
+            <TabsTrigger value="submissions">Submissions</TabsTrigger>
           </TabsList>
           <TabsContent value="weddings" className="mt-6">
             <GalleryEditor vertical="weddings" />
@@ -118,6 +124,12 @@ const Admin = () => {
           </TabsContent>
           <TabsContent value="photographer" className="mt-6">
             <PhotographerEditor />
+          </TabsContent>
+          <TabsContent value="faq" className="mt-6">
+            <FaqEditor />
+          </TabsContent>
+          <TabsContent value="submissions" className="mt-6">
+            <SubmissionsViewer />
           </TabsContent>
         </Tabs>
       </main>

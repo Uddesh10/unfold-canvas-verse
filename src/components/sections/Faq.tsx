@@ -1,8 +1,10 @@
 import { Reveal } from "@/components/Reveal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { faqs } from "@/data/faq";
+import { useFaqStore } from "@/hooks/useFaqStore";
 
-export const Faq = () => (
+export const Faq = () => {
+  const { items: faqs } = useFaqStore();
+  return (
   <section id="faq" className="relative py-28 md:py-40">
     <div className="container mx-auto px-6 grid md:grid-cols-12 gap-10">
       <Reveal className="md:col-span-4">
@@ -27,4 +29,5 @@ export const Faq = () => (
       </Reveal>
     </div>
   </section>
-);
+  );
+};

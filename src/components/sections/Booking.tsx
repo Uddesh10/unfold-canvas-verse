@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { addSubmission } from "@/hooks/useSubmissionsStore";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(80),
@@ -29,8 +30,16 @@ export const Booking = () => {
 
   const category = watch("category");
 
-  const onSubmit = async (_v: FormVals) => {
+  const onSubmit = async (v: FormVals) => {
     await new Promise((r) => setTimeout(r, 900));
+    addSubmission({
+      name: v.name,
+      email: v.email,
+      phone: v.phone,
+      category: v.category,
+      date: v.date,
+      message: v.message || undefined,
+    });
     setSubmitted(true);
     reset();
   };

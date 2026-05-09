@@ -7,6 +7,7 @@ import { GalleryEditor } from "@/components/admin/GalleryEditor";
 import { PhotographerEditor } from "@/components/admin/PhotographerEditor";
 import { FaqEditor } from "@/components/admin/FaqEditor";
 import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
+import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
 import { Seo } from "@/components/Seo";
 import { useRef } from "react";
 import { toast } from "@/components/ui/use-toast";
@@ -18,6 +19,7 @@ const STORAGE_KEYS = [
   "unfold:photographer",
   "unfold:faqs",
   "unfold:submissions",
+  "unfold:testimonials:weddings",
 ];
 
 const Admin = () => {
@@ -107,6 +109,7 @@ const Admin = () => {
         <Tabs defaultValue="weddings">
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="weddings">Weddings</TabsTrigger>
+            <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="spaces">Spaces</TabsTrigger>
             <TabsTrigger value="stories">Stories</TabsTrigger>
             <TabsTrigger value="photographer">Photographer</TabsTrigger>
@@ -115,6 +118,9 @@ const Admin = () => {
           </TabsList>
           <TabsContent value="weddings" className="mt-6">
             <GalleryEditor vertical="weddings" />
+          </TabsContent>
+          <TabsContent value="testimonials" className="mt-6">
+            <TestimonialsEditor />
           </TabsContent>
           <TabsContent value="spaces" className="mt-6">
             <GalleryEditor vertical="spaces" />

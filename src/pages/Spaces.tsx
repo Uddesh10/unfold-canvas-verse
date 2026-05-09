@@ -10,8 +10,6 @@ import { useGalleryStore } from "@/hooks/useGalleryStore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const clients = ["Casa Lume", "Hauser Atelier", "North Wing", "Volta House", "Studio Berge", "Mahon & Co", "Linnea Form"];
-
 const Spaces = () => {
   useLenis();
   useTheme("spaces");
@@ -77,22 +75,6 @@ const Spaces = () => {
               </div>
             </Reveal>
             <Gallery items={items} variant="grid" />
-          </div>
-        </section>
-
-        {/* Client wordmarks */}
-        <section className="py-24">
-          <div className="container mx-auto px-6">
-            <Reveal>
-              <div className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground text-center mb-10">Selected clients</div>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 text-muted-foreground/80">
-                {clients.map((c) => (
-                  <span key={c} className="font-light text-xl md:text-2xl tracking-tight">{c}</span>
-                ))}
-              </div>
-            </Reveal>
           </div>
         </section>
 

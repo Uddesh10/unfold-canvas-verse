@@ -7,19 +7,15 @@ import { CustomCursor } from "@/components/CustomCursor";
 import { Reveal } from "@/components/Reveal";
 import { Gallery } from "@/components/Gallery";
 import { useGalleryStore } from "@/hooks/useGalleryStore";
+import { useWeddingTestimonialsStore } from "@/hooks/useTestimonialsStore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const testimonials = [
-  { q: "We cried when we opened the gallery. Every quiet moment we'd missed was waiting for us, perfectly held.", a: "Anika & Rohan — Udaipur" },
-  { q: "Cinema. There's no other word. Our day, returned to us as a film without a frame.", a: "Sophie & Léo — Provence" },
-  { q: "The crew were invisible until we needed them. Our families haven't stopped talking about the photos.", a: "Maya & Daniel — Kyoto" },
-];
 
 const Weddings = () => {
   useLenis();
   useTheme("weddings");
   const { items } = useGalleryStore("weddings");
+  const { items: testimonials } = useWeddingTestimonialsStore();
   return (
     <div className="relative">
       <Seo title="Unfold Studios — Wedding Photography" description="Romantic, cinematic wedding photography. Editorial coverage, fine-art delivery, worldwide." path="/weddings" />

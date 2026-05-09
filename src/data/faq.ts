@@ -1,4 +1,6 @@
-export const faqs = [
+export type FaqItem = { q: string; a: string };
+
+export const faqs: FaqItem[] = [
   {
     q: "What does a typical Unfold shoot look like?",
     a: "Every shoot begins with a conversation. We get to know the people, the place, the why — then quietly build a visual plan around it. On the day, we work unobtrusively and let moments unfold.",

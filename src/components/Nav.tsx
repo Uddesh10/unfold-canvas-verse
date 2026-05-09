@@ -1,10 +1,19 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { verticals } from "@/data/themes";
 import { cn } from "@/lib/utils";
 
 export const Nav = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const handleBook = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (pathname === "/") {
+      document.getElementById("book")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      navigate("/#book");
+    }
+  };
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
@@ -38,12 +47,13 @@ export const Nav = () => {
           })}
         </nav>
 
-        <Link
-          to="/#book"
-          className="text-xs uppercase tracking-[0.2em] glass rounded-full px-4 py-2 hover:glow transition-all"
+        <a
+          href="/#book"
+          onClick={handleBook}
+          className="text-xs uppercase tracking-[0.2em] glass rounded-full px-4 py-2 hover:glow transition-all cursor-pointer"
         >
           Book
-        </Link>
+        </a>
       </div>
     </motion.header>
   );

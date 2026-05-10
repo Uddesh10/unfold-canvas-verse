@@ -8,6 +8,8 @@ import { PhotographerEditor } from "@/components/admin/PhotographerEditor";
 import { FaqEditor } from "@/components/admin/FaqEditor";
 import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
 import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
+import { HeroSlidesEditor } from "@/components/admin/HeroSlidesEditor";
+import { ShowcaseEditor } from "@/components/admin/ShowcaseEditor";
 import { Seo } from "@/components/Seo";
 import { useRef } from "react";
 import { toast } from "@/components/ui/use-toast";
@@ -20,6 +22,8 @@ const STORAGE_KEYS = [
   "unfold:faqs",
   "unfold:submissions",
   "unfold:testimonials:weddings",
+  "unfold:hero-slides",
+  "unfold:showcase",
 ];
 
 const Admin = () => {
@@ -106,8 +110,10 @@ const Admin = () => {
           Edit photos for each studio and update photographer info. Saved to this browser only.
         </p>
 
-        <Tabs defaultValue="weddings">
+        <Tabs defaultValue="hero">
           <TabsList className="flex-wrap h-auto">
+            <TabsTrigger value="hero">Hero</TabsTrigger>
+            <TabsTrigger value="showcase">Studios</TabsTrigger>
             <TabsTrigger value="weddings">Weddings</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="spaces">Spaces</TabsTrigger>
@@ -116,6 +122,12 @@ const Admin = () => {
             <TabsTrigger value="faq">FAQ</TabsTrigger>
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
           </TabsList>
+          <TabsContent value="hero" className="mt-6">
+            <HeroSlidesEditor />
+          </TabsContent>
+          <TabsContent value="showcase" className="mt-6">
+            <ShowcaseEditor />
+          </TabsContent>
           <TabsContent value="weddings" className="mt-6">
             <GalleryEditor vertical="weddings" />
           </TabsContent>

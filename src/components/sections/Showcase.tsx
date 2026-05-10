@@ -2,22 +2,28 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { verticals } from "@/data/themes";
+import { useShowcaseStore } from "@/hooks/useShowcaseStore";
 import { Reveal } from "@/components/Reveal";
 
 const CYCLE_MS = 5000;
 
 export const Showcase = () => {
+  const { items: verticals } = useShowcaseStore();
   const [i, setI] = useState(0);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const stageRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const v = verticals[i];
+  const safeI = verticals.length ? i % verticals.length : 0;
+  const v = verticals[safeI] ?? null;
 
   useEffect(() => {
+    if (verticals.length === 0) return;
+    if (i >= verticals.length) setI(0);
     const id = setInterval(() => setI((x) => (x + 1) % verticals.length), CYCLE_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [verticals.length, i]);
+
+  if (!v) return null;
 
   const onMove = (e: React.MouseEvent) => {
     const r = stageRef.current?.getBoundingClientRect();

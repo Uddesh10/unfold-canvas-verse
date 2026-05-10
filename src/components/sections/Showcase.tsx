@@ -18,9 +18,10 @@ export const Showcase = () => {
 
   useEffect(() => {
     if (verticals.length === 0) return;
+    if (i >= verticals.length) setI(0);
     const id = setInterval(() => setI((x) => (x + 1) % verticals.length), CYCLE_MS);
     return () => clearInterval(id);
-  }, [verticals.length]);
+  }, [verticals.length, i]);
 
   if (!v) return null;
 

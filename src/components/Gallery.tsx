@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Lightbox, useLightbox } from "@/components/Lightbox";
 import type { GalleryItem } from "@/data/galleries";
 import { Reveal } from "@/components/Reveal";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 interface Props {
   items: GalleryItem[];
@@ -26,7 +27,7 @@ export const Gallery = ({ items, variant, className }: Props) => {
                 data-cursor-hover
               >
                 <img
-                  src={it.src}
+                  src={resolveImageUrl(it.src)}
                   alt={it.alt}
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
@@ -61,7 +62,7 @@ export const Gallery = ({ items, variant, className }: Props) => {
               className={`group relative overflow-hidden bg-muted ${spans[i % spans.length]}`}
               data-cursor-hover
             >
-              <img src={it.src} alt={it.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              <img src={resolveImageUrl(it.src)} alt={it.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               {it.caption && (
                 <span className="absolute bottom-2 left-2 font-mono text-[10px] uppercase tracking-widest text-white/90 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -87,7 +88,7 @@ export const Gallery = ({ items, variant, className }: Props) => {
               className="group block w-full overflow-hidden rounded-2xl relative bg-muted"
               data-cursor-hover
             >
-              <img src={it.src} alt={it.alt} loading="lazy" className="w-full h-auto transition-transform duration-700 group-hover:scale-[1.04]" />
+              <img src={resolveImageUrl(it.src)} alt={it.alt} loading="lazy" className="w-full h-auto transition-transform duration-700 group-hover:scale-[1.04]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               {it.caption && (
                 <span className="absolute bottom-3 left-3 text-[10px] uppercase tracking-[0.25em] text-white opacity-0 group-hover:opacity-100 transition-opacity">

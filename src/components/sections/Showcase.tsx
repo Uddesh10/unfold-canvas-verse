@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useShowcaseStore } from "@/hooks/useShowcaseStore";
 import { Reveal } from "@/components/Reveal";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 const CYCLE_MS = 5000;
 
@@ -117,7 +118,7 @@ export const Showcase = () => {
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={v.key}
-                    src={v.image}
+                    src={resolveImageUrl(v.image)}
                     alt={v.brand}
                     initial={{ opacity: 0, scale: 1.08 }}
                     animate={{ opacity: 1, scale: 1 }}

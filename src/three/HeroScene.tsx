@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHeroSlidesStore } from "@/hooks/useHeroSlidesStore";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const HeroScene = () => {
   const { items: slides } = useHeroSlidesStore();

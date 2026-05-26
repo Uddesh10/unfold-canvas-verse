@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus, RotateCcw } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const HeroSlidesEditor = () => {
   const { items, set, reset } = useHeroSlidesStore();
@@ -50,7 +51,7 @@ export const HeroSlidesEditor = () => {
           <div key={i} className="glass rounded-2xl p-4 grid grid-cols-12 gap-3 items-start">
             <div className="col-span-12 sm:col-span-3">
               <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-                <img src={it.src} alt={it.caption} className="h-full w-full object-cover" />
+                <img src={resolveImageUrl(it.src)} alt={it.caption} className="h-full w-full object-cover" />
               </div>
             </div>
             <div className="col-span-12 sm:col-span-8 space-y-2">

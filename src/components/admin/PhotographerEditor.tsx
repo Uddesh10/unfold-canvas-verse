@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Plus, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const PhotographerEditor = () => {
   const { value, set, reset } = usePhotographerStore();
@@ -32,7 +33,7 @@ export const PhotographerEditor = () => {
           <Label>Portrait URL</Label>
           <Input value={value.portrait} onChange={(e) => patch({ portrait: e.target.value })} />
           {value.portrait && (
-            <img src={value.portrait} alt="" className="mt-2 h-40 w-32 object-cover rounded-lg" />
+            <img src={resolveImageUrl(value.portrait)} alt="" className="mt-2 h-40 w-32 object-cover rounded-lg" />
           )}
         </div>
         <div className="space-y-2 md:col-span-2">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { GalleryItem } from "@/data/galleries";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 interface Props {
   items: GalleryItem[];
@@ -69,7 +70,7 @@ export const Lightbox = ({ items, index, onClose, onIndexChange }: Props) => {
             className="max-w-[92vw] max-h-[88vh]"
           >
             <img
-              src={items[index].src}
+              src={resolveImageUrl(items[index].src)}
               alt={items[index].alt}
               className="max-w-[92vw] max-h-[80vh] object-contain rounded-md shadow-glass"
             />

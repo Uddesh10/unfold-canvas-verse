@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Mail, Instagram, MapPin, Palette } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { usePhotographerStore } from "@/hooks/usePhotographerStore";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const Photographer = () => {
   const { value: p } = usePhotographerStore();
@@ -11,7 +12,7 @@ export const Photographer = () => {
         <Reveal className="md:col-span-5">
           <div className="relative aspect-[4/5] overflow-hidden rounded-3xl glass">
             <motion.img
-              src={p.portrait}
+              src={resolveImageUrl(p.portrait)}
               alt={p.name}
               loading="lazy"
               initial={{ scale: 1.08 }}

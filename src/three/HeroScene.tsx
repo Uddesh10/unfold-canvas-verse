@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHeroSlidesStore } from "@/hooks/useHeroSlidesStore";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const HeroScene = () => {
   const { items: slides } = useHeroSlidesStore();
@@ -27,7 +28,7 @@ export const HeroScene = () => {
           className="absolute inset-0"
         >
           <img
-            src={slides[i].src}
+            src={resolveImageUrl(slides[i].src)}
             alt={slides[i].caption}
             className="absolute inset-0 h-full w-full object-cover"
             draggable={false}

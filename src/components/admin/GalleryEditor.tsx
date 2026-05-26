@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus, RotateCcw } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { resolveImageUrl } from "@/lib/imageUrl";
 import type { GalleryItem } from "@/data/galleries";
 
 export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
@@ -48,7 +49,7 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
             <div className="col-span-12 sm:col-span-2">
               <div className="aspect-[4/5] overflow-hidden rounded-lg bg-muted">
                 {it.src && (
-                  <img src={it.src} alt={it.alt} className="h-full w-full object-cover" />
+                  <img src={resolveImageUrl(it.src)} alt={it.alt} className="h-full w-full object-cover" />
                 )}
               </div>
             </div>

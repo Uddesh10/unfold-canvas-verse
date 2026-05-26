@@ -27,7 +27,7 @@ export const HeroScene = () => {
           className="absolute inset-0"
         >
           <img
-            src={slides[i].src}
+            src={resolveImageUrl(slides[i].src)}
             alt={slides[i].caption}
             className="absolute inset-0 h-full w-full object-cover"
             draggable={false}

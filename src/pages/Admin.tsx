@@ -8,6 +8,7 @@ import { PhotographerEditor } from "@/components/admin/PhotographerEditor";
 import { FaqEditor } from "@/components/admin/FaqEditor";
 import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
 import { HeroSlidesEditor } from "@/components/admin/HeroSlidesEditor";
+import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
 import { Seo } from "@/components/Seo";
 import { useRef } from "react";
 import { toast } from "@/components/ui/use-toast";
@@ -111,7 +112,6 @@ const Admin = () => {
         <Tabs defaultValue="hero">
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="hero">Hero</TabsTrigger>
-            <TabsTrigger value="showcase">Studios</TabsTrigger>
             <TabsTrigger value="weddings">Weddings</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="spaces">Spaces</TabsTrigger>
@@ -122,9 +122,6 @@ const Admin = () => {
           </TabsList>
           <TabsContent value="hero" className="mt-6">
             <HeroSlidesEditor />
-          </TabsContent>
-          <TabsContent value="showcase" className="mt-6">
-            <ShowcaseEditor />
           </TabsContent>
           <TabsContent value="weddings" className="mt-6">
             <GalleryEditor vertical="weddings" />

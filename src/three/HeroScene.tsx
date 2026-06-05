@@ -33,7 +33,6 @@ export const HeroScene = () => {
             className="absolute inset-0 h-full w-full object-cover"
             draggable={false}
           />
-          <div className={`absolute inset-0 bg-gradient-to-br ${slides[i].tint}`} />
         </motion.div>
       </AnimatePresence>
 

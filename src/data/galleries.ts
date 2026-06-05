@@ -1,17 +1,58 @@
-export type GalleryItem = { src: string; alt: string; caption?: string; w?: number; h?: number };
+export type GalleryItem = {
+  src: string;
+  alt: string;
+  caption?: string;
+  client?: string;
+  photos?: string[];
+  videos?: string[];
+  feedback?: string;
+  w?: number;
+  h?: number;
+};
 
 const u = (id: string, w = 1400) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
 
 export const weddingsGallery: GalleryItem[] = [
-  { src: u("photo-1519741497674-611481863552"), alt: "Bride and groom at golden hour", caption: "Tuscany · 2024" },
-  { src: u("photo-1511795409834-ef04bbd61622"), alt: "Wedding rings on lace", caption: "Details" },
-  { src: u("photo-1530023367847-a683933f4172"), alt: "First dance under fairy lights", caption: "Reception" },
-  { src: u("photo-1465495976277-4387d4b0b4c6"), alt: "Bouquet of pale roses", caption: "Florals" },
-  { src: u("photo-1519225421980-715cb0215aed"), alt: "Couple kissing in sunlit doorway", caption: "Provence · 2023" },
-  { src: u("photo-1583939003579-730e3918a45a"), alt: "Bridal portrait by window light", caption: "Portrait" },
-  { src: u("photo-1591604466107-ec97de577aff"), alt: "Outdoor ceremony arch", caption: "Ceremony" },
-  { src: u("photo-1525772764200-be829a350797"), alt: "Champagne toast", caption: "Toasts" },
-  { src: u("photo-1606216794074-735e91aa2c92"), alt: "Veil floating in wind", caption: "Movement" },
+  {
+    src: u("photo-1519741497674-611481863552"),
+    alt: "Bride and groom at golden hour",
+    caption: "Tuscany · 2024",
+    client: "Maya & Arjun",
+    photos: [
+      u("photo-1519741497674-611481863552"),
+      u("photo-1511795409834-ef04bbd61622"),
+      u("photo-1530023367847-a683933f4172"),
+      u("photo-1465495976277-4387d4b0b4c6"),
+    ],
+    videos: ["https://www.youtube.com/embed/dQw4w9WgXcQ"],
+    feedback:
+      "Unfold gave us a film we'll show our grandchildren. Every frame feels like a memory, not a photograph.",
+  },
+  {
+    src: u("photo-1519225421980-715cb0215aed"),
+    alt: "Couple kissing in sunlit doorway",
+    caption: "Provence · 2023",
+    client: "Sophie & Liam",
+    photos: [
+      u("photo-1519225421980-715cb0215aed"),
+      u("photo-1583939003579-730e3918a45a"),
+      u("photo-1591604466107-ec97de577aff"),
+    ],
+    videos: [],
+    feedback: "Quiet, patient, and the result is breathtaking. Worth every second.",
+  },
+  {
+    src: u("photo-1525772764200-be829a350797"),
+    alt: "Champagne toast",
+    caption: "Reception",
+    client: "Priya & Rohan",
+    photos: [
+      u("photo-1525772764200-be829a350797"),
+      u("photo-1606216794074-735e91aa2c92"),
+      u("photo-1530023367847-a683933f4172"),
+    ],
+    feedback: "They disappeared into the day and brought back a treasure.",
+  },
 ];
 
 export const spacesGallery: GalleryItem[] = [

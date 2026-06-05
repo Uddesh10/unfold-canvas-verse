@@ -1,39 +1,54 @@
+import { useEffect, useState } from "react";
 import { useLenis } from "@/hooks/useLenis";
 import { useTheme } from "@/hooks/useTheme";
 import { Seo } from "@/components/Seo";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { CustomCursor } from "@/components/CustomCursor";
 import { Reveal } from "@/components/Reveal";
 import { Gallery } from "@/components/Gallery";
 import { useGalleryStore } from "@/hooks/useGalleryStore";
 import { useWeddingTestimonialsStore } from "@/hooks/useTestimonialsStore";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 const Weddings = () => {
   useLenis();
   useTheme("weddings");
   const { items } = useGalleryStore("weddings");
   const { items: testimonials } = useWeddingTestimonialsStore();
+
+  // Hero carousel — cycles through wedding gallery covers
+  const heroSlides = items.length > 0
+    ? items.map((it) => ({ src: it.src, label: it.client ?? it.caption ?? "Wedding" }))
+    : [{ src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=2200&q=85", label: "Wedding" }];
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (heroSlides.length < 2) return;
+    const t = setInterval(() => setI((p) => (p + 1) % heroSlides.length), 5000);
+    return () => clearInterval(t);
+  }, [heroSlides.length]);
+
   return (
     <div className="relative">
       <Seo title="Unfold Studios — Wedding Photography" description="Romantic, cinematic wedding photography. Editorial coverage, fine-art delivery, worldwide." path="/weddings" />
-      <CustomCursor />
       <Nav />
       <main>
-        {/* Hero */}
+        {/* Hero carousel */}
         <section className="relative h-[92svh] min-h-[600px] overflow-hidden">
-          <motion.img
-            src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=2200&q=85"
-            alt="Couple in golden light"
-            initial={{ scale: 1.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 2 }}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+          <AnimatePresence mode="sync">
+            <motion.img
+              key={i}
+              src={resolveImageUrl(heroSlides[i].src)}
+              alt={heroSlides[i].label}
+              initial={{ scale: 1.1, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </AnimatePresence>
           <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/10 to-background" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,hsl(var(--theme-1)/0.35),transparent_60%)] mix-blend-soft-light" />
           <div className="relative z-10 container mx-auto px-6 h-full flex flex-col justify-end pb-24">
             <Reveal>
               <div className="text-xs uppercase tracking-[0.4em] text-primary mb-4">Unfold Studios</div>
@@ -45,38 +60,38 @@ const Weddings = () => {
               </p>
             </Reveal>
           </div>
-        </section>
 
-        {/* Intro */}
-        <section className="py-24 md:py-32">
-          <div className="container mx-auto px-6 grid md:grid-cols-12 gap-10">
-            <Reveal className="md:col-span-5">
-              <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-4">The work</div>
-              <h2 className="font-display text-5xl md:text-6xl leading-[1.05]">A film for the rest of your life.</h2>
-            </Reveal>
-            <Reveal delay={0.15} className="md:col-span-6 md:col-start-7 text-foreground/80 text-lg leading-relaxed space-y-4">
-              <p>We approach every wedding as an editorial shoot wrapped around a love story. Our lenses chase the softest light; our crew choreographs nothing.</p>
-              <p>What you're left with is a private archive — fine-art prints, a curated gallery, and an heirloom album made in linen and Italian leather.</p>
-            </Reveal>
+          {/* carousel dots */}
+          <div className="absolute bottom-8 right-8 flex gap-2 z-10">
+            {heroSlides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setI(idx)}
+                aria-label={`Slide ${idx + 1}`}
+                className={`h-1 rounded-full transition-all ${idx === i ? "w-10 bg-primary" : "w-5 bg-foreground/30"}`}
+              />
+            ))}
           </div>
         </section>
 
-        {/* Gallery */}
-        <section className="py-12 md:py-20">
+        {/* Photo grid */}
+        <section className="py-20 md:py-28">
           <div className="container mx-auto px-6">
-            <Reveal>
-              <div className="flex items-end justify-between mb-10">
-                <h2 className="font-display text-4xl md:text-5xl">Selected stories</h2>
-                <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground hidden md:block">2023 — 2025</span>
-              </div>
-            </Reveal>
             <Gallery items={items} variant="masonry" />
           </div>
         </section>
 
-        {/* Testimonials */}
+        {/* Reviews / testimonials */}
         <section className="py-24 md:py-32">
           <div className="container mx-auto px-6">
+            <Reveal>
+              <div className="text-center mb-12">
+                <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-4">Reviews</div>
+                <h2 className="font-display text-4xl md:text-5xl">
+                  In their <span className="italic text-gradient">words.</span>
+                </h2>
+              </div>
+            </Reveal>
             <div className="grid md:grid-cols-3 gap-5">
               {testimonials.map((t, i) => (
                 <Reveal key={i} delay={i * 0.1}>
@@ -91,7 +106,7 @@ const Weddings = () => {
           </div>
         </section>
 
-        {/* CTA */}
+        {/* CTA — Begin your wedding story */}
         <section className="py-20">
           <div className="container mx-auto px-6">
             <Reveal>

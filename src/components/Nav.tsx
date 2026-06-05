@@ -29,23 +29,25 @@ export const Nav = () => {
           <span className="h-1 w-1 rounded-full bg-foreground/60 group-hover:bg-primary transition-colors" />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1 glass rounded-full px-2 py-1.5">
-          {verticals.map((v) => {
-            const active = pathname === v.path;
-            return (
-              <Link
-                key={v.key}
-                to={v.path}
-                className={cn(
-                  "px-4 py-1.5 text-xs uppercase tracking-[0.2em] rounded-full transition-all",
-                  active ? "bg-foreground text-background" : "text-foreground/70 hover:text-foreground"
-                )}
-              >
-                {v.label}
-              </Link>
-            );
-          })}
-        </nav>
+        {pathname !== "/" && (
+          <nav className="hidden md:flex items-center gap-1 glass rounded-full px-2 py-1.5">
+            {verticals.map((v) => {
+              const active = pathname === v.path;
+              return (
+                <Link
+                  key={v.key}
+                  to={v.path}
+                  className={cn(
+                    "px-4 py-1.5 text-xs uppercase tracking-[0.2em] rounded-full transition-all",
+                    active ? "bg-foreground text-background" : "text-foreground/70 hover:text-foreground"
+                  )}
+                >
+                  {v.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
         <a
           href="/#book"

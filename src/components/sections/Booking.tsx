@@ -31,17 +31,20 @@ export const Booking = () => {
   const category = watch("category");
 
   const onSubmit = async (v: FormVals) => {
-    await new Promise((r) => setTimeout(r, 900));
-    addSubmission({
-      name: v.name,
-      email: v.email,
-      phone: v.phone,
-      category: v.category,
-      date: v.date,
-      message: v.message || undefined,
-    });
-    setSubmitted(true);
-    reset();
+    try {
+      await addSubmission({
+        name: v.name,
+        email: v.email,
+        phone: v.phone,
+        category: v.category,
+        date: v.date,
+        message: v.message || undefined,
+      });
+      setSubmitted(true);
+      reset();
+    } catch (err) {
+      console.error("Submission failed", err);
+    }
   };
 
   return (

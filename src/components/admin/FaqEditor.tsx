@@ -2,11 +2,10 @@ import { useFaqStore } from "@/hooks/useFaqStore";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUp, ArrowDown, Plus, RotateCcw } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 
 export const FaqEditor = () => {
-  const { items, set, reset } = useFaqStore();
+  const { items, set } = useFaqStore();
 
   const update = (i: number, patch: Partial<{ q: string; a: string }>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -26,14 +25,9 @@ export const FaqEditor = () => {
         <div className="text-sm text-muted-foreground">
           {items.length} question{items.length === 1 ? "" : "s"}
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { reset(); toast({ title: "Reset to defaults" }); }}>
-            <RotateCcw className="h-3.5 w-3.5 mr-2" /> Reset
-          </Button>
-          <Button size="sm" onClick={add}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add
-          </Button>
-        </div>
+        <Button size="sm" onClick={add}>
+          <Plus className="h-3.5 w-3.5 mr-2" /> Add
+        </Button>
       </div>
 
       <div className="space-y-3">

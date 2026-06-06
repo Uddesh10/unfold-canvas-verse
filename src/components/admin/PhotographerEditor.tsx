@@ -3,22 +3,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Plus, Trash2 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { Plus, Trash2 } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const PhotographerEditor = () => {
-  const { value, set, reset } = usePhotographerStore();
+  const { value, set } = usePhotographerStore();
 
   const patch = (p: Partial<typeof value>) => set({ ...value, ...p });
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={() => { reset(); toast({ title: "Reset to defaults" }); }}>
-          <RotateCcw className="h-3.5 w-3.5 mr-2" /> Reset
-        </Button>
-      </div>
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">

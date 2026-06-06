@@ -1,4 +1,4 @@
-import { useLocalStore } from "@/lib/localStore";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import { verticals } from "@/data/themes";
 
 export type ShowcaseSlide = {
@@ -12,20 +12,12 @@ export type ShowcaseSlide = {
   image: string;
 };
 
-export const defaultShowcaseSlides: ShowcaseSlide[] = verticals.map((v) => ({
-  key: v.key,
-  brand: v.brand,
-  label: v.label,
-  tagline: v.tagline,
-  path: v.path,
-  color: v.color,
-  glow: v.glow,
-  image: v.image,
+const fallback: ShowcaseSlide[] = verticals.map((v) => ({
+  key: v.key, brand: v.brand, label: v.label, tagline: v.tagline,
+  path: v.path, color: v.color, glow: v.glow, image: v.image,
 }));
 
-export const SHOWCASE_KEY = "unfold:showcase";
-
 export function useShowcaseStore() {
-  const [items, set] = useLocalStore<ShowcaseSlide[]>(SHOWCASE_KEY, defaultShowcaseSlides);
-  return { items, set, reset: () => set(defaultShowcaseSlides) };
+  const { value, set, loading } = useSiteContent<ShowcaseSlide[]>("showcase", fallback);
+  return { items: value, set, loading };
 }

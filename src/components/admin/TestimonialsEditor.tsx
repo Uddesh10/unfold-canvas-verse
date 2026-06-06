@@ -2,11 +2,10 @@ import { useWeddingTestimonialsStore } from "@/hooks/useTestimonialsStore";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUp, ArrowDown, Plus, RotateCcw } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 
 export const TestimonialsEditor = () => {
-  const { items, set, reset } = useWeddingTestimonialsStore();
+  const { items, set } = useWeddingTestimonialsStore();
 
   const update = (i: number, patch: Partial<{ q: string; a: string }>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -26,14 +25,9 @@ export const TestimonialsEditor = () => {
         <div className="text-sm text-muted-foreground">
           {items.length} testimonial{items.length === 1 ? "" : "s"} — shown on the Weddings page
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { reset(); toast({ title: "Reset to defaults" }); }}>
-            <RotateCcw className="h-3.5 w-3.5 mr-2" /> Reset
-          </Button>
-          <Button size="sm" onClick={add}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add
-          </Button>
-        </div>
+        <Button size="sm" onClick={add}>
+          <Plus className="h-3.5 w-3.5 mr-2" /> Add
+        </Button>
       </div>
 
       <div className="space-y-3">

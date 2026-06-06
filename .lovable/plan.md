@@ -1,85 +1,64 @@
-## Plan — Hero recolor + new showcase element + local admin
+# Move to Lovable Cloud + real admin auth
 
-### 1. New hero color theme (no gold)
-Update default `:root` palette in `src/index.css` to a richer, more "happening" cinematic scheme — deep midnight indigo background with **magenta → violet → cyan aurora** accents.
+Today everything (galleries, hero slides, FAQs, testimonials, photographer, submissions, admin "login") lives in `localStorage` and a hardcoded password (`unfold2026`) in `src/lib/adminAuth.ts`. That means content is per-browser and the admin area is not actually secure. We'll move storage to Lovable Cloud (Supabase under the hood) and use real auth + a role check for admin.
 
-- `--background`: `240 25% 6%`
-- `--theme-1`: magenta `320 90% 62%`
-- `--theme-2`: violet `265 85% 65%`
-- `--theme-3`: cyan `190 95% 60%`
-- `--gradient-hero`: aurora radial gradients
-- `--gradient-text`: magenta → cyan
-- `HeroScene.tsx`: swap warm directional light for magenta + cyan rim lights; glow planes use new theme colors
-- Per-vertical themes (`weddings`, `spaces`, `stories`) untouched
+## 1. Enable Lovable Cloud
+One click from me — this provisions Postgres, Auth, Storage and Edge Functions, no external account needed. After that, everything below runs against it.
 
-**Keep** the three pill buttons + "Est. 2016" tag in the hero — only the colors change.
+## 2. Database schema (one migration)
+All tables in `public`, RLS on, explicit GRANTs.
 
-### 2. Replace the big "Three perspectives" boxes
-Remove the three large 3:4 cards on the home page and replace with a new eye-catching element:
+- `site_content(key text primary key, value jsonb, updated_at timestamptz)` — single-row configs (photographer, hero slides, showcase).
+- `gallery_items(id uuid pk, vertical text, position int, src, alt, caption, client, photos jsonb, videos jsonb, feedback, ...)` — replaces the 3 gallery localStorage keys.
+- `faqs(id uuid pk, position int, question, answer)`
+- `testimonials(id uuid pk, vertical text, position int, name, quote, role)`
+- `submissions(id uuid pk, created_at, name, email, phone, category, date, message)` — booking form goes here.
+- `app_role` enum (`admin`, `user`) + `user_roles(user_id, role)` table + `has_role(uuid, app_role)` security-definer function. **Roles are NOT stored on profiles** — separate table, per Lovable's security rules.
 
-**A horizontal cinematic showcase strip** — full-bleed, edge-to-edge, with:
-- A single large tilted photo "stage" in the center that auto-cycles through one signature image per vertical (cross-fade every ~4s)
-- Big rotating display number (01 / 02 / 03) and vertical name overlaid
-- A thin progress bar showing cycle position
-- Left/right arrow controls + clickable thumbnail dots
-- Subtle parallax tilt on mouse move (CSS transform, no Three.js)
-- Click the stage → navigates to that vertical
-- Below: a single-line marquee of project keywords ("Tuscany · Milan · Shinjuku · 02:14 · Veil · Marble · Neon …") drifting slowly
+### RLS summary
+- Public read on `site_content`, `gallery_items`, `faqs`, `testimonials` (anon + authenticated SELECT).
+- Writes on those tables: only `has_role(auth.uid(), 'admin')`.
+- `submissions`: anon + authenticated can INSERT; only admins can SELECT/DELETE.
+- `user_roles`: authenticated can read their own row; only admins can modify.
 
-This replaces the grid with one bold, animated, cinematic moment.
+## 3. Seed data
+Insert the current default arrays from `src/data/*.ts` (faq, galleries, testimonials, photographer, hero slides) so the live site keeps showing the same content after the switch.
 
-### 3. Photographer info section
-New section between Hero and the new showcase:
-- Left: portrait (Unsplash placeholder)
-- Right: name, role, 2–3 paragraph bio, location, signature, IG/Behance/Email icons
-- Stat row: "200+ weddings · 14 countries · 9 years"
-- Data lives in `src/data/photographer.ts` (also editable from admin)
+## 4. Replace localStorage hooks with Supabase
+Rewrite these hooks to fetch from Supabase and expose `useQuery` + a mutation that requires admin:
+- `useGalleryStore` → `gallery_items` (filtered by vertical, ordered by position)
+- `useFaqStore` → `faqs`
+- `useTestimonialsStore` → `testimonials`
+- `usePhotographerStore`, `useHeroSlidesStore`, `useShowcaseStore` → rows in `site_content`
+- `useSubmissionsStore` + `addSubmission` → `submissions`
 
-### 4. Local admin page (no backend)
-A `/admin` route, password-gated entirely client-side. No Supabase, no server.
+Editors in `src/components/admin/*` stay almost the same — they just call the new mutations. Booking form keeps calling `addSubmission` (now an insert).
 
-**Auth (client-only):**
-- Hard-coded password constant in code (e.g. `unfold2026`) — user can change it in one place.
-- `/admin/login` form: enter password → on match, sets `sessionStorage.adminAuthed = true` → redirect to `/admin`.
-- `RequireAdmin` guard checks the flag; otherwise redirects to login.
-- "Logout" clears the flag.
-- ⚠️ Honest caveat surfaced in the plan: client-side passwords can be read in the bundle by anyone determined. Fine for personal portfolio gating, not real security. If real security is needed later, switch to Lovable Cloud auth.
+Import/Export buttons in `Admin.tsx` get repointed to read/write the same Supabase tables (or removed — your call).
 
-**Storage:**
-- All edits persisted to `localStorage` under `unfold:gallery:weddings`, `unfold:gallery:spaces`, `unfold:gallery:stories`, and `unfold:photographer`.
-- On first load, store is seeded from the existing defaults in `src/data/galleries.ts` and `src/data/photographer.ts`.
-- A `useGalleryStore(vertical)` hook (tiny custom store w/ `useSyncExternalStore`) gives reactive reads + writes; gallery pages and the home showcase use it.
+## 5. Real admin authentication
+- Add a `profiles` table? **Question for you below** — only needed if you want display name/avatar for admins. Auth itself doesn't require it.
+- Rewrite `src/pages/AdminLogin.tsx` to use Supabase email+password sign-in (and optionally Google — Lovable Cloud supports it natively).
+- Rewrite `src/lib/adminAuth.ts` + `src/components/RequireAdmin.tsx` to:
+  - subscribe to `onAuthStateChange`
+  - check `has_role(user.id, 'admin')` via RPC
+  - redirect to `/admin/login` if not signed in OR not admin
+- Delete the hardcoded `ADMIN_PASSWORD` constant.
+- Footer "Admin" link stays.
 
-**Admin UI (`/admin`):**
-- Tabs: **Weddings · Spaces · Stories · Photographer**
-- Each gallery tab: list rows with thumbnail preview, image URL input, alt text, caption, ↑/↓ reorder, delete, "+ Add photo" button
-- Photographer tab: name, role, bio (textarea), portrait URL, location, IG/email links, stats fields
-- "Reset to defaults" button per tab
-- "Export JSON" / "Import JSON" buttons so the user can back up or move data between browsers (since it's localStorage-only)
-- Toast feedback on save
+### Bootstrapping the first admin
+After you sign up your admin email once through `/admin/login`, I'll insert a row into `user_roles` for that user via a one-off SQL insert. Subsequent admins can be added the same way (or via a small "manage admins" tab later).
 
-### Technical section
+## 6. Cleanup
+- Remove `src/lib/localStore.ts` usage from the migrated hooks (keep file only if anything else uses it).
+- Add basic error/loading states in editors.
+- Verify build, smoke-test admin login + a content edit + a booking submission.
 
-**Files to create**
-- `src/components/sections/Showcase.tsx` (new cinematic strip replacing the 3 boxes)
-- `src/components/sections/Photographer.tsx`
-- `src/data/photographer.ts`
-- `src/lib/adminAuth.ts` (password constant + session helpers)
-- `src/lib/localStore.ts` (typed localStorage helpers + subscribe)
-- `src/hooks/useGalleryStore.ts`, `src/hooks/usePhotographerStore.ts`
-- `src/components/RequireAdmin.tsx`
-- `src/pages/Admin.tsx`, `src/pages/AdminLogin.tsx`
-- `src/components/admin/GalleryEditor.tsx`
-- `src/components/admin/PhotographerEditor.tsx`
+## Questions before I build
 
-**Files to edit**
-- `src/index.css` — new aurora palette (default theme only)
-- `src/three/HeroScene.tsx` — magenta/cyan lighting
-- `src/pages/Index.tsx` — drop the old grid section, mount `<Photographer />` and `<Showcase />`
-- `src/pages/Weddings.tsx`, `Spaces.tsx`, `Stories.tsx` — read photos via `useGalleryStore`
-- `src/App.tsx` — add `/admin` and `/admin/login` routes
+1. **Profiles table?** Do you want a `profiles` table for admin display name/avatar, or is email-only fine?
+2. **Sign-in methods?** Email+password only, or also Google sign-in?
+3. **First admin email** — what email should I provision as the initial admin? (You'll sign up with it, then I grant the role.)
+4. **Keep Import/Export JSON buttons** in the admin header, or drop them now that data is in the DB?
 
-**No backend, no new dependencies.**
-
-### Open question (default if no answer)
-- Default admin password: I'll set it to `unfold2026`. Tell me if you want a different one.
+Once you answer, I'll switch to build mode and ship it in one pass.

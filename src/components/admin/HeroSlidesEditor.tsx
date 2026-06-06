@@ -1,12 +1,11 @@
 import { useHeroSlidesStore, type HeroSlide } from "@/hooks/useHeroSlidesStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUp, ArrowDown, Plus, RotateCcw } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const HeroSlidesEditor = () => {
-  const { items, set, reset } = useHeroSlidesStore();
+  const { items, set } = useHeroSlidesStore();
 
   const update = (i: number, patch: Partial<HeroSlide>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -36,14 +35,9 @@ export const HeroSlidesEditor = () => {
           <h3 className="font-display text-xl">Hero carousel</h3>
           <p className="text-sm text-muted-foreground">Background slides shown on the homepage hero.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { reset(); toast({ title: "Reset to defaults" }); }}>
-            <RotateCcw className="h-3.5 w-3.5 mr-2" /> Reset
-          </Button>
-          <Button size="sm" onClick={add}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
-          </Button>
-        </div>
+        <Button size="sm" onClick={add}>
+          <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
+        </Button>
       </div>
 
       <div className="space-y-3">

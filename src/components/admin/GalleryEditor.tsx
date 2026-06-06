@@ -2,13 +2,12 @@ import { useGalleryStore, type Vertical } from "@/hooks/useGalleryStore";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUp, ArrowDown, Plus, RotateCcw, X } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { Trash2, ArrowUp, ArrowDown, Plus, X } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
 import type { GalleryItem } from "@/data/galleries";
 
 export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
-  const { items, set, reset } = useGalleryStore(vertical);
+  const { items, set } = useGalleryStore(vertical);
 
   const update = (i: number, patch: Partial<GalleryItem>) => {
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -55,14 +54,9 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
         <div className="text-sm text-muted-foreground">
           {items.length} album{items.length === 1 ? "" : "s"}
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { reset(); toast({ title: "Reset to defaults" }); }}>
-            <RotateCcw className="h-3.5 w-3.5 mr-2" /> Reset
-          </Button>
-          <Button size="sm" onClick={add}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add album
-          </Button>
-        </div>
+        <Button size="sm" onClick={add}>
+          <Plus className="h-3.5 w-3.5 mr-2" /> Add album
+        </Button>
       </div>
 
       <div className="space-y-3">

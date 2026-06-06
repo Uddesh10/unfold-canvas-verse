@@ -1,18 +1,17 @@
-// Client-side gate for the /admin area.
-// NOTE: this is NOT real security — anyone with the bundle can read this string.
-// It's adequate to keep casual visitors out of the editor, nothing more.
-export const ADMIN_PASSWORD = "unfold2026";
-const KEY = "unfold:adminAuthed";
+import { supabase } from "@/integrations/supabase/client";
 
-export const isAdminAuthed = () =>
-  typeof window !== "undefined" && sessionStorage.getItem(KEY) === "1";
+export async function isAdmin(userId: string | undefined): Promise<boolean> {
+  if (!userId) return false;
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) return false;
+  return !!data;
+}
 
-export const signInAdmin = (password: string) => {
-  if (password === ADMIN_PASSWORD) {
-    sessionStorage.setItem(KEY, "1");
-    return true;
-  }
-  return false;
-};
-
-export const signOutAdmin = () => sessionStorage.removeItem(KEY);
+export async function signOut() {
+  await supabase.auth.signOut();
+}

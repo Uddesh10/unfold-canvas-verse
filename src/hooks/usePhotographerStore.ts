@@ -1,9 +1,7 @@
-import { useLocalStore } from "@/lib/localStore";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import { defaultPhotographer, type Photographer } from "@/data/photographer";
 
-const KEY = "unfold:photographer";
-
 export function usePhotographerStore() {
-  const [value, set] = useLocalStore<Photographer>(KEY, defaultPhotographer);
-  return { value, set, reset: () => set(defaultPhotographer) };
+  const { value, set, loading } = useSiteContent<Photographer>("photographer", defaultPhotographer);
+  return { value, set, loading };
 }

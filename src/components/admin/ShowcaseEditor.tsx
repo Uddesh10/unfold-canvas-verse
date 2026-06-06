@@ -2,12 +2,11 @@ import { useShowcaseStore, type ShowcaseSlide } from "@/hooks/useShowcaseStore";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUp, ArrowDown, Plus, RotateCcw } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const ShowcaseEditor = () => {
-  const { items, set, reset } = useShowcaseStore();
+  const { items, set } = useShowcaseStore();
 
   const update = (i: number, patch: Partial<ShowcaseSlide>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -41,14 +40,9 @@ export const ShowcaseEditor = () => {
           <h3 className="font-display text-xl">Studios carousel</h3>
           <p className="text-sm text-muted-foreground">"One house. Three perspectives." section on homepage.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { reset(); toast({ title: "Reset to defaults" }); }}>
-            <RotateCcw className="h-3.5 w-3.5 mr-2" /> Reset
-          </Button>
-          <Button size="sm" onClick={add}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
-          </Button>
-        </div>
+        <Button size="sm" onClick={add}>
+          <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
+        </Button>
       </div>
 
       <div className="space-y-3">

@@ -27,7 +27,8 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
     <AnimatePresence>
       {open && item && (
         <motion.div
-          className="fixed inset-0 z-[90] overflow-y-auto bg-background/95 backdrop-blur-xl"
+          className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain bg-background/95 backdrop-blur-xl"
+          data-lenis-prevent
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

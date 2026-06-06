@@ -60,25 +60,9 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                 {item.client ?? item.alt}
               </h2>
 
-              {/* Photos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(item.photos && item.photos.length > 0 ? item.photos : [item.src]).map((p, i) => (
-                  <motion.img
-                    key={i}
-                    src={resolveImageUrl(p)}
-                    alt={`${item.alt} — ${i + 1}`}
-                    loading="lazy"
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05, duration: 0.5 }}
-                    className="w-full h-auto rounded-2xl object-cover"
-                  />
-                ))}
-              </div>
-
               {/* Videos */}
               {item.videos && item.videos.length > 0 && (
-                <div className="mt-12">
+                <div className="mb-12">
                   <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-5">
                     Films
                   </div>
@@ -97,6 +81,22 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                   </div>
                 </div>
               )}
+
+              {/* Photos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(item.photos && item.photos.length > 0 ? item.photos : [item.src]).map((p, i) => (
+                  <motion.img
+                    key={i}
+                    src={resolveImageUrl(p)}
+                    alt={`${item.alt} — ${i + 1}`}
+                    loading="lazy"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.5 }}
+                    className="w-full h-auto rounded-2xl object-cover"
+                  />
+                ))}
+              </div>
 
               {/* Feedback */}
               {item.feedback && (

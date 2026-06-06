@@ -55,9 +55,6 @@ const Weddings = () => {
               <h1 className="font-display text-6xl md:text-8xl leading-[0.95] max-w-4xl">
                 Where vows become <span className="italic text-gradient">forever.</span>
               </h1>
-              <p className="mt-6 max-w-xl text-base md:text-lg text-foreground/80">
-                Editorial wedding photography for couples who want their day remembered the way it actually felt — luminous, slow, and theirs.
-              </p>
             </Reveal>
           </div>
 

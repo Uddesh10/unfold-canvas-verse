@@ -21,7 +21,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
 
   useEffect(() => {
     if (!hover || photos.length < 2) return;
-    const t = setInterval(() => setI((p) => (p + 1) % photos.length), 1100);
+    const t = setInterval(() => setI((p) => (p + 1) % photos.length), 2500);
     return () => clearInterval(t);
   }, [hover, photos.length]);
 
@@ -58,10 +58,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       {item.client && (
         <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.35em] text-white/70">Client</div>
-            <div className="font-display text-2xl italic text-white">{item.client}</div>
-          </div>
+          <div className="font-display text-2xl italic text-white">{item.client}</div>
           {photos.length > 1 && (
             <div className="flex gap-1">
               {photos.map((_, idx) => (

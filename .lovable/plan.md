@@ -1,18 +1,31 @@
-## 1. Grant admin role to [unfold@admin.com](mailto:unfold@admin.com)
+## Goal
 
-Insert a row into `user_roles` for user id `39616946-bab1-4d78-877e-d4a59b08511d` with role `admin` (idempotent — skip if already present).
+Let admins upload multiple images at once in the admin section (currently `ImageUpload` only accepts a single file).
 
-## 2. Wedding reviews → arrow-button slideshow
+## Where it matters most
 
-In `src/pages/Weddings.tsx`, replace the 3-column reviews grid with a three-card slideshow:
+The "Photos in album" list inside `GalleryEditor` is the main pain point — admins add photos one-by-one. Other spots (`HeroSlidesEditor`, `ShowcaseEditor`, `PhotographerEditor`, cover image in `GalleryEditor`) are inherently single-image and stay single.
 
-- Three testimonial visible at a time, centered, styled like the existing `glass rounded-3xl` card.
-- Left/right arrow buttons (lucide `ChevronLeft` / `ChevronRight`) on each side, vertically centered, matching the site's minimal aesthetic.
-- Dot indicators below for position.
-- Keyboard arrow key support and wrap-around navigation.
-- Smooth fade/slide transition using framer-motion (already in project).
-- No autoplay (manual only) to keep it consistent with the request.
+## Plan
 
-Section heading "In their words." stays unchanged.
+1. **Extend `ImageUpload**` (`src/components/admin/ImageUpload.tsx`)
+  - Add an optional `multiple` prop (default `false`) and an optional `onUploadMany?: (urls: string[]) => void` callback.
+  - When `multiple` is on: set `<input multiple />`, upload all selected files in parallel to the `gallery` bucket, create signed URLs for each, then call `onUploadMany` with the resulting array.
+  - Keep single-file behaviour unchanged when `multiple` is not set.
+  - Show progress like "Uploading 3/8…" and a toast summary at the end (with per-file error handling so one failure doesn't block the rest).
+2. **Add a "Bulk upload" control to `GalleryEditor**` (`src/components/admin/GalleryEditor.tsx`)
+  - Next to the existing "+ Photo" button on each album, add an "Upload multiple" button using the extended `ImageUpload` in `multiple` mode.
+  - On completion, append the returned URLs to that album's `photos` array (slideshow flags untouched; admins can tick them after).
+3. **No DB / schema / RLS changes.** Storage bucket, policies, and signed-URL flow already support this.
 
-No other pages, no schema changes, no other behavior touched.
+## Out of scope
+
+- Drag-and-drop reordering of uploaded photos (existing single up/down arrows still apply if we add them later).
+- Auto-marking newly uploaded photos as slideshow.
+- Bulk upload on hero/showcase/portrait editors (single-image by design).
+
+## Technical notes
+
+- Concurrency: `Promise.allSettled` over the file list so partial failures still return successful URLs.
+- Signed URL TTL: reuse the existing `SIGNED_TTL` constant.
+- File validation: skip non-image files with a toast, same rule as today.

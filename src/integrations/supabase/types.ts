@@ -51,6 +51,7 @@ export type Database = {
           id: string
           photos: Json
           position: number
+          slideshow_photos: Json
           src: string
           updated_at: string
           vertical: string
@@ -65,6 +66,7 @@ export type Database = {
           id?: string
           photos?: Json
           position?: number
+          slideshow_photos?: Json
           src: string
           updated_at?: string
           vertical: string
@@ -79,6 +81,7 @@ export type Database = {
           id?: string
           photos?: Json
           position?: number
+          slideshow_photos?: Json
           src?: string
           updated_at?: string
           vertical?: string

@@ -4,7 +4,7 @@ import { useHeroSlidesStore } from "@/hooks/useHeroSlidesStore";
 import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const HeroScene = () => {
-  const { items: slides } = useHeroSlidesStore();
+  const { items: slides, loading } = useHeroSlidesStore();
   const [i, setI] = useState(0);
 
   useEffect(() => {
@@ -14,7 +14,10 @@ export const HeroScene = () => {
     return () => clearInterval(t);
   }, [slides.length]);
 
-  if (slides.length === 0) return <div className="absolute inset-0 bg-background" />;
+  // Avoid flashing the default slide before remote slides load.
+  if (loading || slides.length === 0) {
+    return <div className="absolute inset-0 bg-background" />;
+  }
 
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -35,8 +38,6 @@ export const HeroScene = () => {
           />
         </motion.div>
       </AnimatePresence>
-
-      {/* overlays removed — no vignette / dark tint */}
 
       {/* slide caption */}
       <div className="absolute bottom-32 right-8 md:right-12 text-right pointer-events-none">

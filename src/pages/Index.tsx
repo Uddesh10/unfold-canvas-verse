@@ -20,7 +20,7 @@ const PerspectiveBar = () => {
       aria-label="Studios"
       className="border-y border-border/40 bg-background/40 backdrop-blur-sm"
     >
-      <div className="container mx-auto px-6 py-4 flex items-center justify-center gap-2 md:gap-1 glass-none">
+      <div className="container mx-auto px-6 py-4 flex items-center justify-center">
         <div className="flex items-center gap-1 glass rounded-full px-2 py-1.5">
           {verticals.map((v) => {
             const active = pathname === v.path;

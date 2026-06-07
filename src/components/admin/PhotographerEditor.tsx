@@ -4,8 +4,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { resolveImageUrl } from "@/lib/imageUrl";
 import { SaveBar } from "@/components/admin/SaveBar";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export const PhotographerEditor = () => {
   const { value, set, save, dirty, saving } = usePhotographerStore();

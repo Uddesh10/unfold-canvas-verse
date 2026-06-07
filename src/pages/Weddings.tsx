@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLenis } from "@/hooks/useLenis";
@@ -23,6 +23,9 @@ const Weddings = () => {
   const safeIndex = total ? ((index % total) + total) % total : 0;
   const prevIdx = total ? (safeIndex - 1 + total) % total : 0;
   const nextIdx = total ? (safeIndex + 1) % total : 0;
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pausedRef = useRef(false);
+
   const prev = () => total && setIndex((i) => i - 1);
   const next = () => total && setIndex((i) => i + 1);
 
@@ -34,6 +37,18 @@ const Weddings = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [total]);
+
+  useEffect(() => {
+    if (total <= 1) return;
+    timerRef.current = setInterval(() => {
+      if (!pausedRef.current) {
+        setIndex((i) => i + 1);
+      }
+    }, 5000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [total, safeIndex]);
 
 
 
@@ -71,7 +86,11 @@ const Weddings = () => {
             </Reveal>
 
             {total > 0 && (
-              <div className="max-w-7xl mx-auto">
+              <div
+                className="max-w-7xl mx-auto"
+                onMouseEnter={() => { pausedRef.current = true; }}
+                onMouseLeave={() => { pausedRef.current = false; }}
+              >
                 <div className="relative flex items-center gap-4 md:gap-8">
                   <button
                     type="button"

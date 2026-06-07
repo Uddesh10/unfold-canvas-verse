@@ -26,11 +26,10 @@ export const PhotographerEditor = () => {
           <Input value={value.role} onChange={(e) => patch({ role: e.target.value })} />
         </div>
         <div className="space-y-2 md:col-span-2">
-          <Label>Portrait URL</Label>
-          <Input value={value.portrait} onChange={(e) => patch({ portrait: e.target.value })} />
-          {value.portrait && (
-            <img src={resolveImageUrl(value.portrait)} alt="" className="mt-2 h-40 w-32 object-cover rounded-lg" />
-          )}
+          <Label>Portrait</Label>
+          <div className="max-w-[200px]">
+            <ImageUpload value={value.portrait} onChange={(url) => patch({ portrait: url })} aspect="aspect-[4/5]" />
+          </div>
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label>Bio (use blank lines for paragraphs)</Label>

@@ -16,19 +16,24 @@ export function useGalleryStore(vertical: Vertical) {
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("gallery_items")
-      .select("id, src, alt, caption, client, photos, videos, feedback, position")
+      .select("*")
       .eq("vertical", vertical)
       .order("position", { ascending: true });
     setItems(
-      (data ?? []).map((r) => ({
-        src: r.src,
-        alt: r.alt ?? "",
-        caption: r.caption ?? undefined,
-        client: r.client ?? undefined,
-        photos: (r.photos as string[] | null) ?? [],
-        videos: (r.videos as string[] | null) ?? [],
-        feedback: r.feedback ?? undefined,
-      }))
+      (data ?? []).map((r) => {
+        // slideshow_photos may not be in generated types yet
+        const slideshow = (r as unknown as { slideshow_photos?: string[] }).slideshow_photos ?? [];
+        return {
+          src: r.src,
+          alt: r.alt ?? "",
+          caption: r.caption ?? undefined,
+          client: r.client ?? undefined,
+          photos: (r.photos as string[] | null) ?? [],
+          slideshowPhotos: slideshow as string[],
+          videos: (r.videos as string[] | null) ?? [],
+          feedback: r.feedback ?? undefined,
+        };
+      })
     );
     setDirty(false);
     setLoading(false);
@@ -54,10 +59,11 @@ export function useGalleryStore(vertical: Vertical) {
         caption: it.caption ?? null,
         client: it.client ?? null,
         photos: it.photos ?? [],
+        slideshow_photos: it.slideshowPhotos ?? [],
         videos: it.videos ?? [],
         feedback: it.feedback ?? null,
       }));
-      const { error } = await supabase.from("gallery_items").insert(rows);
+      const { error } = await supabase.from("gallery_items").insert(rows as never);
       if (error) { setSaving(false); throw error; }
     }
     setSaving(false);

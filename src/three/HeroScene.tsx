@@ -36,9 +36,7 @@ export const HeroScene = () => {
         </motion.div>
       </AnimatePresence>
 
-      {/* film grain / overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,hsl(var(--background))_95%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-background/30" />
+      {/* overlays removed — no vignette / dark tint */}
 
       {/* slide caption */}
       <div className="absolute bottom-32 right-8 md:right-12 text-right pointer-events-none">

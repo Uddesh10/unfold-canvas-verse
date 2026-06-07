@@ -48,7 +48,7 @@ const Weddings = () => {
               className="absolute inset-0 h-full w-full object-cover"
             />
           </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/10 to-background" />
+          {/* light gradient removed */}
           <div className="relative z-10 container mx-auto px-6 h-full flex flex-col justify-end pb-24">
             <Reveal>
               <div className="text-xs uppercase tracking-[0.4em] text-primary mb-4">Unfold Studios</div>

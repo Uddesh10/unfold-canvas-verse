@@ -53,8 +53,7 @@ export const Hero = () => {
         ))}
       </motion.nav>
 
-      {/* vignette */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,hsl(var(--background))_100%)]" />
+      {/* vignette removed */}
     </section>
   );
 };

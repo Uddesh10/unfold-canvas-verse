@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
+import { SaveBar } from "@/components/admin/SaveBar";
 
 export const HeroSlidesEditor = () => {
-  const { items, set } = useHeroSlidesStore();
+  const { items, set, save, dirty, saving } = useHeroSlidesStore();
 
   const update = (i: number, patch: Partial<HeroSlide>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -30,6 +31,7 @@ export const HeroSlidesEditor = () => {
 
   return (
     <div className="space-y-4">
+      <SaveBar dirty={dirty} saving={saving} save={save} />
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-display text-xl">Hero carousel</h3>

@@ -18,7 +18,7 @@ const Index = () => {
     <div className="relative">
       <Seo
         title="Unfold Studios — Cinematic photography in three perspectives"
-        description="A photography house of three studios — Weddings, Interiors and Street — built on quiet observation and luxurious craft."
+        description="A photography house of three studios — Weddings, Architecture and Street — built on quiet observation and luxurious craft."
         path="/"
       />
       <Nav />

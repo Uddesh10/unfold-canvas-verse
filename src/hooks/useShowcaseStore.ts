@@ -18,6 +18,6 @@ const fallback: ShowcaseSlide[] = verticals.map((v) => ({
 }));
 
 export function useShowcaseStore() {
-  const { value, set, loading } = useSiteContent<ShowcaseSlide[]>("showcase", fallback);
-  return { items: value, set, loading };
+  const { value, set, save, dirty, saving, loading } = useSiteContent<ShowcaseSlide[]>("showcase", fallback);
+  return { items: value, set, save, dirty, saving, loading };
 }

@@ -4,9 +4,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
+import { SaveBar } from "@/components/admin/SaveBar";
 
 export const ShowcaseEditor = () => {
-  const { items, set } = useShowcaseStore();
+  const { items, set, save, dirty, saving } = useShowcaseStore();
+
 
   const update = (i: number, patch: Partial<ShowcaseSlide>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -35,6 +37,7 @@ export const ShowcaseEditor = () => {
 
   return (
     <div className="space-y-4">
+      <SaveBar dirty={dirty} saving={saving} save={save} />
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-display text-xl">Studios carousel</h3>

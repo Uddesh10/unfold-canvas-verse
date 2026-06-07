@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus, X } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
 import type { GalleryItem } from "@/data/galleries";
+import { SaveBar } from "@/components/admin/SaveBar";
 
 export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
-  const { items, set } = useGalleryStore(vertical);
+  const { items, set, save, dirty, saving } = useGalleryStore(vertical);
 
   const update = (i: number, patch: Partial<GalleryItem>) => {
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -50,6 +51,7 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
 
   return (
     <div className="space-y-4">
+      <SaveBar dirty={dirty} saving={saving} save={save} />
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           {items.length} album{items.length === 1 ? "" : "s"}

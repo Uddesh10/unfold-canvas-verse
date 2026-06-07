@@ -17,6 +17,6 @@ export const defaultHeroSlides: HeroSlide[] = [
 ];
 
 export function useHeroSlidesStore() {
-  const { value, set, loading } = useSiteContent<HeroSlide[]>("hero_slides", defaultHeroSlides);
-  return { items: value, set, loading };
+  const { value, set, save, dirty, saving, loading } = useSiteContent<HeroSlide[]>("hero_slides", defaultHeroSlides);
+  return { items: value, set, save, dirty, saving, loading };
 }

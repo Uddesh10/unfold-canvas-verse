@@ -115,7 +115,7 @@ export const Booking = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="weddings">Unfold Studios — Weddings</SelectItem>
-                        <SelectItem value="spaces">Unfold Spaces — Interiors</SelectItem>
+                        <SelectItem value="spaces">Unfold Spaces — Architecture</SelectItem>
                         <SelectItem value="stories">Unfold Stories — Street</SelectItem>
                       </SelectContent>
                     </Select>

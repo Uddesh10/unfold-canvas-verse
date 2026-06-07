@@ -2,8 +2,8 @@ import { useHeroSlidesStore, type HeroSlide } from "@/hooks/useHeroSlidesStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
-import { resolveImageUrl } from "@/lib/imageUrl";
 import { SaveBar } from "@/components/admin/SaveBar";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export const HeroSlidesEditor = () => {
   const { items, set, save, dirty, saving } = useHeroSlidesStore();

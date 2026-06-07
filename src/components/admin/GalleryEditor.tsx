@@ -115,9 +115,18 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
                 <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
                   Photos in album · tick "Slideshow" to feature on the grid hover
                 </div>
-                <Button variant="outline" size="sm" onClick={() => addPhoto(i)}>
-                  <Plus className="h-3 w-3 mr-1" /> Photo
-                </Button>
+                <div className="flex items-center gap-2">
+                  <ImageUpload
+                    multiple
+                    label="Upload multiple"
+                    onUploadMany={(urls) =>
+                      update(i, { photos: [...(items[i].photos ?? []), ...urls] })
+                    }
+                  />
+                  <Button variant="outline" size="sm" onClick={() => addPhoto(i)}>
+                    <Plus className="h-3 w-3 mr-1" /> Photo
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 {(it.photos ?? []).map((p, idx) => {

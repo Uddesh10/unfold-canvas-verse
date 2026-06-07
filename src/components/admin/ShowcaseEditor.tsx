@@ -3,8 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
-import { resolveImageUrl } from "@/lib/imageUrl";
 import { SaveBar } from "@/components/admin/SaveBar";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export const ShowcaseEditor = () => {
   const { items, set, save, dirty, saving } = useShowcaseStore();

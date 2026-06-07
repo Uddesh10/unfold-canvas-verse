@@ -17,21 +17,14 @@ const Weddings = () => {
   useTheme("weddings");
   const { items } = useGalleryStore("weddings");
   const { items: testimonials } = useWeddingTestimonialsStore();
-  const [page, setPage] = useState(0);
-  const [perView, setPerView] = useState(typeof window !== "undefined" && window.innerWidth >= 768 ? 3 : 1);
-
-  useEffect(() => {
-    const onResize = () => setPerView(window.innerWidth >= 768 ? 3 : 1);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+  const [index, setIndex] = useState(0);
 
   const total = testimonials.length;
-  const pages = Math.max(1, total - perView + 1);
-  const safePage = Math.min(page, pages - 1);
-  const visible = total > 0 ? testimonials.slice(safePage, safePage + perView) : [];
-  const prev = () => setPage((p) => (p - 1 + pages) % pages);
-  const next = () => setPage((p) => (p + 1) % pages);
+  const safeIndex = total ? ((index % total) + total) % total : 0;
+  const prevIdx = total ? (safeIndex - 1 + total) % total : 0;
+  const nextIdx = total ? (safeIndex + 1) % total : 0;
+  const prev = () => total && setIndex((i) => i - 1);
+  const next = () => total && setIndex((i) => i + 1);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -40,7 +33,8 @@ const Weddings = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [pages]);
+  }, [total]);
+
 
 
   return (

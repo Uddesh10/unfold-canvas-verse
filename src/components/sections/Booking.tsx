@@ -51,7 +51,7 @@ export const Booking = () => {
     <section id="book" className="relative py-28 md:py-40">
       <div className="container mx-auto px-6 grid md:grid-cols-12 gap-10">
         <Reveal className="md:col-span-5">
-          <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-5">04 — Begin</div>
+          <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-5">03 — Begin</div>
           <h2 className="font-display text-5xl md:text-6xl leading-[1.05]">
             Start your <span className="italic text-gradient">story.</span>
           </h2>

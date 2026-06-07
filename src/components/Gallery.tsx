@@ -13,17 +13,20 @@ interface Props {
   caption?: ReactNode;
 }
 
-// Mini slideshow on hover — cycles through photos[] when hovered.
+// Mini slideshow on hover — cycles through slideshowPhotos[] when hovered.
+// If no slideshow photos are flagged, just shows the cover image (no cycle).
 const SlideshowImage = ({ item }: { item: GalleryItem }) => {
-  const photos = item.photos && item.photos.length > 0 ? item.photos : [item.src];
+  const slideshow = item.slideshowPhotos && item.slideshowPhotos.length > 0
+    ? item.slideshowPhotos
+    : [item.src];
   const [i, setI] = useState(0);
   const [hover, setHover] = useState(false);
 
   useEffect(() => {
-    if (!hover || photos.length < 2) return;
-    const t = setInterval(() => setI((p) => (p + 1) % photos.length), 1500);
+    if (!hover || slideshow.length < 2) return;
+    const t = setInterval(() => setI((p) => (p + 1) % slideshow.length), 1500);
     return () => clearInterval(t);
-  }, [hover, photos.length]);
+  }, [hover, slideshow.length]);
 
   useEffect(() => {
     if (!hover) setI(0);
@@ -35,7 +38,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {photos.map((p, idx) => (
+      {slideshow.map((p, idx) => (
         <img
           key={idx}
           src={resolveImageUrl(p)}
@@ -48,7 +51,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       ))}
       {/* fallback static for layout when image is masonry-auto */}
       <img
-        src={resolveImageUrl(photos[0])}
+        src={resolveImageUrl(slideshow[0])}
         alt=""
         aria-hidden
         className="invisible w-full h-auto"
@@ -57,20 +60,8 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       {/* hover overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       {item.client && (
-        <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="font-display text-2xl italic text-white">{item.client}</div>
-          {photos.length > 1 && (
-            <div className="flex gap-1">
-              {photos.map((_, idx) => (
-                <span
-                  key={idx}
-                  className={`h-1 w-4 rounded-full transition-all ${
-                    idx === i ? "bg-white" : "bg-white/30"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
       {!item.client && item.caption && (
@@ -87,7 +78,6 @@ export const Gallery = ({ items, variant, className }: Props) => {
   const [album, setAlbum] = useState<GalleryItem | null>(null);
 
   const onItemClick = (it: GalleryItem, i: number) => {
-    // If the item is rich (client/photos/videos/feedback), open the album dialog.
     if (it.client || (it.photos && it.photos.length > 0) || (it.videos && it.videos.length > 0) || it.feedback) {
       setAlbum(it);
     } else {

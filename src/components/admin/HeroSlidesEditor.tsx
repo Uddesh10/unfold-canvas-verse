@@ -2,8 +2,8 @@ import { useHeroSlidesStore, type HeroSlide } from "@/hooks/useHeroSlidesStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
-import { resolveImageUrl } from "@/lib/imageUrl";
 import { SaveBar } from "@/components/admin/SaveBar";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export const HeroSlidesEditor = () => {
   const { items, set, save, dirty, saving } = useHeroSlidesStore();
@@ -46,12 +46,9 @@ export const HeroSlidesEditor = () => {
         {items.map((it, i) => (
           <div key={i} className="glass rounded-2xl p-4 grid grid-cols-12 gap-3 items-start">
             <div className="col-span-12 sm:col-span-3">
-              <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-                <img src={resolveImageUrl(it.src)} alt={it.caption} className="h-full w-full object-cover" />
-              </div>
+              <ImageUpload value={it.src} onChange={(url) => update(i, { src: url })} aspect="aspect-video" />
             </div>
             <div className="col-span-12 sm:col-span-8 space-y-2">
-              <Input value={it.src} onChange={(e) => update(i, { src: e.target.value })} placeholder="Image URL" />
               <div className="grid grid-cols-2 gap-2">
                 <Input value={it.label} onChange={(e) => update(i, { label: e.target.value })} placeholder="Label" />
                 <Input value={it.caption} onChange={(e) => update(i, { caption: e.target.value })} placeholder="Caption" />

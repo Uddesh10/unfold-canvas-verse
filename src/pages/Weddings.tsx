@@ -17,6 +17,31 @@ const Weddings = () => {
   useTheme("weddings");
   const { items } = useGalleryStore("weddings");
   const { items: testimonials } = useWeddingTestimonialsStore();
+  const [page, setPage] = useState(0);
+  const [perView, setPerView] = useState(typeof window !== "undefined" && window.innerWidth >= 768 ? 3 : 1);
+
+  useEffect(() => {
+    const onResize = () => setPerView(window.innerWidth >= 768 ? 3 : 1);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const total = testimonials.length;
+  const pages = Math.max(1, total - perView + 1);
+  const safePage = Math.min(page, pages - 1);
+  const visible = total > 0 ? testimonials.slice(safePage, safePage + perView) : [];
+  const prev = () => setPage((p) => (p - 1 + pages) % pages);
+  const next = () => setPage((p) => (p + 1) % pages);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") prev();
+      else if (e.key === "ArrowRight") next();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pages]);
+
 
   return (
     <div className="relative">

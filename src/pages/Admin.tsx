@@ -44,7 +44,7 @@ const Admin = () => {
       <main className="container mx-auto px-6 py-10">
         <h1 className="font-display text-4xl mb-2">Content manager</h1>
         <p className="text-muted-foreground mb-8 text-sm">
-          All edits are saved to the database and visible to every visitor immediately.
+          Make your edits, then hit <strong>Save changes</strong> at the top of each section to push them live.
         </p>
 
         <Tabs defaultValue="hero">

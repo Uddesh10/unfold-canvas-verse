@@ -21,7 +21,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
 
   useEffect(() => {
     if (!hover || photos.length < 2) return;
-    const t = setInterval(() => setI((p) => (p + 1) % photos.length), 2500);
+    const t = setInterval(() => setI((p) => (p + 1) % photos.length), 1500);
     return () => clearInterval(t);
   }, [hover, photos.length]);
 

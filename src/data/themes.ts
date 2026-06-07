@@ -16,7 +16,7 @@ export const verticals = [
   {
     key: "spaces" as const,
     brand: "Unfold Spaces",
-    label: "Interiors",
+    label: "Architecture",
     tagline: "Architecture, in its quietest voice.",
     blurb: "Editorial interior photography that honours light, line, and the calm geometry of considered spaces.",
     path: "/spaces",

@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
+import { SaveBar } from "@/components/admin/SaveBar";
 
 export const FaqEditor = () => {
-  const { items, set } = useFaqStore();
+  const { items, set, save, dirty, saving } = useFaqStore();
 
   const update = (i: number, patch: Partial<{ q: string; a: string }>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -21,6 +22,7 @@ export const FaqEditor = () => {
 
   return (
     <div className="space-y-4">
+      <SaveBar dirty={dirty} saving={saving} save={save} />
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           {items.length} question{items.length === 1 ? "" : "s"}

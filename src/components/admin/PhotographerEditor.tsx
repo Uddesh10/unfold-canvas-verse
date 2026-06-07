@@ -5,14 +5,16 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { resolveImageUrl } from "@/lib/imageUrl";
+import { SaveBar } from "@/components/admin/SaveBar";
 
 export const PhotographerEditor = () => {
-  const { value, set } = usePhotographerStore();
+  const { value, set, save, dirty, saving } = usePhotographerStore();
 
   const patch = (p: Partial<typeof value>) => set({ ...value, ...p });
 
   return (
     <div className="space-y-5">
+      <SaveBar dirty={dirty} saving={saving} save={save} />
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">

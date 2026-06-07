@@ -52,12 +52,9 @@ export const ShowcaseEditor = () => {
         {items.map((it, i) => (
           <div key={i} className="glass rounded-2xl p-4 grid grid-cols-12 gap-3 items-start">
             <div className="col-span-12 sm:col-span-3">
-              <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-                <img src={resolveImageUrl(it.image)} alt={it.brand} className="h-full w-full object-cover" />
-              </div>
+              <ImageUpload value={it.image} onChange={(url) => update(i, { image: url })} aspect="aspect-video" />
             </div>
             <div className="col-span-12 sm:col-span-8 space-y-2">
-              <Input value={it.image} onChange={(e) => update(i, { image: e.target.value })} placeholder="Image URL" />
               <div className="grid grid-cols-2 gap-2">
                 <Input value={it.brand} onChange={(e) => update(i, { brand: e.target.value })} placeholder="Brand" />
                 <Input value={it.label} onChange={(e) => update(i, { label: e.target.value })} placeholder="Label" />

@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLenis } from "@/hooks/useLenis";
 import { useTheme } from "@/hooks/useTheme";
 import { Seo } from "@/components/Seo";

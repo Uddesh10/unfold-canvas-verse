@@ -74,17 +74,62 @@ const Weddings = () => {
                 </h2>
               </div>
             </Reveal>
-            <div className="grid md:grid-cols-3 gap-5">
-              {testimonials.map((t, i) => (
-                <Reveal key={i} delay={i * 0.1}>
-                  <figure className="glass rounded-3xl p-8 h-full">
-                    <span className="font-display text-5xl text-gradient leading-none">"</span>
-                    <blockquote className="mt-2 text-base leading-relaxed">{t.q}</blockquote>
-                    <figcaption className="mt-6 text-xs uppercase tracking-[0.25em] text-muted-foreground">— {t.a}</figcaption>
-                  </figure>
-                </Reveal>
-              ))}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={prev}
+                aria-label="Previous reviews"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-6 z-10 h-11 w-11 rounded-full glass flex items-center justify-center hover:scale-110 transition"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={next}
+                aria-label="Next reviews"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-6 z-10 h-11 w-11 rounded-full glass flex items-center justify-center hover:scale-110 transition"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+
+              <div className="overflow-hidden px-2 md:px-8">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={safePage}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="grid md:grid-cols-3 gap-5"
+                  >
+                    {visible.map((t, i) => (
+                      <figure key={`${safePage}-${i}`} className="glass rounded-3xl p-8 h-full">
+                        <span className="font-display text-5xl text-gradient leading-none">"</span>
+                        <blockquote className="mt-2 text-base leading-relaxed">{t.q}</blockquote>
+                        <figcaption className="mt-6 text-xs uppercase tracking-[0.25em] text-muted-foreground">— {t.a}</figcaption>
+                      </figure>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {pages > 1 && (
+                <div className="flex justify-center gap-2 mt-8">
+                  {Array.from({ length: pages }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setPage(i)}
+                      aria-label={`Go to slide ${i + 1}`}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === safePage ? "w-8 bg-foreground" : "w-1.5 bg-muted-foreground/40"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
+
           </div>
         </section>
 

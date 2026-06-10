@@ -1,22 +1,29 @@
 import { forwardRef, type ImgHTMLAttributes } from "react";
 import { parsePhoto, type Variant } from "@/lib/photoModel";
 import { resolveImageUrl } from "@/lib/imageUrl";
+import { isPendingToken, getPendingPreview } from "@/lib/pendingUploads";
 
 interface Props extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> {
-  /** Either a serialized Photo JSON string or a legacy URL string. */
   photo: string;
-  /** Which size variant to render. */
   variant: Variant;
-  /** Optional sizes hint for the browser. */
   pictureClassName?: string;
 }
 
-/**
- * Renders an image as <picture> with AVIF + WebP sources for modern photos,
- * or a plain <img> for legacy URL-only entries. Always lazy + async decoding.
- */
 export const PhotoImg = forwardRef<HTMLImageElement, Props>(
   ({ photo, variant, pictureClassName, loading = "lazy", decoding = "async", ...imgProps }, ref) => {
+    if (isPendingToken(photo)) {
+      const url = getPendingPreview(photo) ?? "";
+      return (
+        <img
+          ref={ref}
+          src={url}
+          loading={loading}
+          decoding={decoding}
+          {...imgProps}
+        />
+      );
+    }
+
     const parsed = parsePhoto(photo);
 
     if (parsed.kind === "legacy") {
@@ -32,7 +39,6 @@ export const PhotoImg = forwardRef<HTMLImageElement, Props>(
     }
 
     const v = parsed.photo[variant];
-    // Use aspect from full-size dimensions to prevent CLS.
     const width = imgProps.width ?? parsed.photo.w;
     const height = imgProps.height ?? parsed.photo.h;
 

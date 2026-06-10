@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveAllPending } from "@/lib/resolvePending";
 
 /**
  * Generic hook for a single jsonb row in site_content keyed by `key`.
@@ -40,12 +41,18 @@ export function useSiteContent<T>(key: string, fallback: T) {
 
   const save = useCallback(async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from("site_content")
-      .upsert({ key, value: ref.current as never }, { onConflict: "key" });
-    setSaving(false);
-    if (error) throw error;
-    setDirty(false);
+    try {
+      const resolved = await resolveAllPending(ref.current);
+      setValue(resolved);
+      ref.current = resolved;
+      const { error } = await supabase
+        .from("site_content")
+        .upsert({ key, value: resolved as never }, { onConflict: "key" });
+      if (error) throw error;
+      setDirty(false);
+    } finally {
+      setSaving(false);
+    }
   }, [key]);
 
   return { value, set, save, dirty, saving, loading, reload: load };

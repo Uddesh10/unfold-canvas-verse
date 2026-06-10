@@ -13,6 +13,20 @@ interface Props {
 export const AlbumDialog = ({ item, onClose }: Props) => {
   const open = !!item;
   const pushedRef = useRef(false);
+  const lightbox = useLightbox();
+
+  const photoUrls = useMemo(
+    () => (item ? (item.photos && item.photos.length > 0 ? item.photos : [item.src]) : []),
+    [item],
+  );
+  const lightboxItems: GalleryItem[] = useMemo(
+    () =>
+      photoUrls.map((p, i) => ({
+        src: p,
+        alt: item ? `${item.alt} — ${i + 1}` : "",
+      })),
+    [photoUrls, item],
+  );
 
   // Browser back closes the album (all verticals).
   useEffect(() => {

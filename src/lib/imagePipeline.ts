@@ -6,6 +6,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { serializePhoto, type Photo, type Variant } from "@/lib/photoModel";
 
+// Vite-resolved URLs for the WASM binaries. `?url` makes Vite copy the file
+// to the build output and serve it with the correct `application/wasm` MIME
+// type in dev — bypassing the Emscripten glue's bare relative fetches that
+// were resolving to the SPA's `index.html`.
+import avifEncWasmUrl from "@jsquash/avif/codec/enc/avif_enc.wasm?url";
+import webpEncWasmUrl from "@jsquash/webp/codec/enc/webp_enc.wasm?url";
+import webpEncSimdWasmUrl from "@jsquash/webp/codec/enc/webp_enc_simd.wasm?url";
+import resizeWasmUrl from "@jsquash/resize/lib/resize/pkg/squoosh_resize_bg.wasm?url";
+
 // ~10 years in seconds — effectively permanent for a signed URL.
 const SIGNED_TTL = 60 * 60 * 24 * 365 * 10;
 
@@ -22,6 +31,54 @@ export type UploadProgress = {
   done: number;
   total: number;
 };
+
+// One-time codec initialization. Each entry resolves to the codec's encode
+// (or resize) function, ready to call.
+let codecsPromise: Promise<{
+  encodeAvif: (data: ImageData, opts: { quality: number; speed?: number }) => Promise<ArrayBuffer>;
+  encodeWebp: (data: ImageData, opts: { quality: number }) => Promise<ArrayBuffer>;
+  resize: (
+    data: ImageData,
+    opts: { width: number; height: number; method?: string },
+  ) => Promise<ImageData>;
+}> | null = null;
+
+function loadCodecs() {
+  if (codecsPromise) return codecsPromise;
+  codecsPromise = (async () => {
+    const [avifEncodeMod, webpEncodeMod, resizeMod] = await Promise.all([
+      // `init` is exported from each codec's encode module but not re-exported
+      // from the package index, so we import the submodules directly.
+      import("@jsquash/avif/encode.js"),
+      import("@jsquash/webp/encode.js"),
+      import("@jsquash/resize"),
+    ]);
+
+    // Tell Emscripten where to fetch the codec WASM. `locateFile` is called
+    // with the bare filename the glue would otherwise resolve relative to
+    // the JS module URL.
+    await (avifEncodeMod as never as { init: Function }).init(undefined, {
+      locateFile: (path: string) => (path.endsWith(".wasm") ? avifEncWasmUrl : path),
+    });
+    await (webpEncodeMod as never as { init: Function }).init(undefined, {
+      locateFile: (path: string) => {
+        if (path.endsWith("webp_enc_simd.wasm")) return webpEncSimdWasmUrl;
+        if (path.endsWith(".wasm")) return webpEncWasmUrl;
+        return path;
+      },
+    });
+
+    // The resize package uses wasm-bindgen; init takes the wasm URL directly.
+    await resizeMod.initResize(resizeWasmUrl);
+
+    return {
+      encodeAvif: (avifEncodeMod as never as { default: Function }).default as never,
+      encodeWebp: (webpEncodeMod as never as { default: Function }).default as never,
+      resize: resizeMod.default as never,
+    };
+  })();
+  return codecsPromise;
+}
 
 // Decode arbitrary image File to an ImageData via the browser. We prefer
 // createImageBitmap + canvas because it handles HEIC-free JPEGs, PNGs, WebPs
@@ -75,14 +132,7 @@ export async function processAndUpload(
   const { data: srcData, w: srcW, h: srcH } = await decodeToImageData(file);
   tick("decode");
 
-  // Lazy-load the heavy WASM codecs only inside the admin upload flow.
-  const [{ default: resize }, avifMod, webpMod] = await Promise.all([
-    import("@jsquash/resize"),
-    import("@jsquash/avif"),
-    import("@jsquash/webp"),
-  ]);
-  const encodeAvif = avifMod.encode;
-  const encodeWebp = webpMod.encode;
+  const { encodeAvif, encodeWebp, resize } = await loadCodecs();
 
   const sources: Record<Variant, { avif: string; webp: string }> = {
     thumb: { avif: "", webp: "" },

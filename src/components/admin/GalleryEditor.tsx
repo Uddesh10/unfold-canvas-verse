@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useGalleryStore, type Vertical } from "@/hooks/useGalleryStore";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +9,8 @@ import { Trash2, ArrowUp, ArrowDown, Plus, X } from "lucide-react";
 import type { GalleryItem } from "@/data/galleries";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
   const { items, set, save, dirty, saving } = useGalleryStore(vertical);

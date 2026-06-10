@@ -10,7 +10,7 @@ import type { GalleryItem } from "@/data/galleries";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
-import { resolveImageUrl } from "@/lib/imageUrl";
+import { PhotoImg } from "@/components/PhotoImg";
 
 export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
   const { items, set, save, dirty, saving } = useGalleryStore(vertical);
@@ -111,8 +111,9 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
               header={
                 <div className="flex items-center gap-3 min-w-0">
                   {it.src ? (
-                    <img
-                      src={resolveImageUrl(it.src)}
+                    <PhotoImg
+                      photo={it.src}
+                      variant="thumb"
                       alt=""
                       className="w-10 h-10 rounded object-cover shrink-0 border border-border/40"
                     />

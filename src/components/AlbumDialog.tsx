@@ -154,12 +154,20 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
               </div>
             </motion.div>
           </div>
-          <Lightbox
-            items={lightboxItems}
-            index={lightbox.index}
-            onClose={lightbox.close}
-            onIndexChange={lightbox.set}
-          />
+          {createPortal(
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <Lightbox
+                items={lightboxItems}
+                index={lightbox.index}
+                onClose={lightbox.close}
+                onIndexChange={lightbox.set}
+              />
+            </div>,
+            document.body,
+          )}
         </motion.div>
       )}
     </AnimatePresence>

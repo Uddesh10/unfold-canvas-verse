@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { GalleryItem } from "@/data/galleries";
 import { resolveImageUrl } from "@/lib/imageUrl";
 import { Lightbox, useLightbox } from "@/components/Lightbox";

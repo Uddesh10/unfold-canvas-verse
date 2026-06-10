@@ -156,6 +156,8 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
           </div>
           {createPortal(
             <div
+              className="fixed inset-0 z-[100] isolate"
+              style={{ pointerEvents: lightbox.index !== null ? "auto" : "none" }}
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >

@@ -1,12 +1,19 @@
+import { useState } from "react";
 import { useHeroSlidesStore, type HeroSlide } from "@/hooks/useHeroSlidesStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
+import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const HeroSlidesEditor = () => {
   const { items, set, save, dirty, saving } = useHeroSlidesStore();
+  const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
+  const setOpen = (i: number, v: boolean) => setOpenMap((m) => ({ ...m, [i]: v }));
+  const expandAll = () => setOpenMap(Object.fromEntries(items.map((_, i) => [i, true])));
+  const collapseAll = () => setOpenMap({});
 
   const update = (i: number, patch: Partial<HeroSlide>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -32,35 +39,60 @@ export const HeroSlidesEditor = () => {
   return (
     <div className="space-y-4">
       <SaveBar dirty={dirty} saving={saving} save={save} />
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h3 className="font-display text-xl">Hero carousel</h3>
           <p className="text-sm text-muted-foreground">Background slides shown on the homepage hero.</p>
         </div>
-        <Button size="sm" onClick={add}>
-          <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={expandAll}>Expand all</Button>
+          <Button variant="outline" size="sm" onClick={collapseAll}>Collapse all</Button>
+          <Button size="sm" onClick={add}>
+            <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-3">
         {items.map((it, i) => (
-          <div key={i} className="glass rounded-2xl p-4 grid grid-cols-12 gap-3 items-start">
-            <div className="col-span-12 sm:col-span-3">
-              <ImageUpload value={it.src} onChange={(url) => update(i, { src: url })} aspect="aspect-video" />
-            </div>
-            <div className="col-span-12 sm:col-span-8 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Input value={it.label} onChange={(e) => update(i, { label: e.target.value })} placeholder="Label" />
-                <Input value={it.caption} onChange={(e) => update(i, { caption: e.target.value })} placeholder="Caption" />
+          <CollapsibleCard
+            key={i}
+            open={!!openMap[i]}
+            onOpenChange={(v) => setOpen(i, v)}
+            header={
+              <div className="flex items-center gap-3 min-w-0">
+                {it.src ? (
+                  <img src={resolveImageUrl(it.src)} alt="" className="w-14 h-9 rounded object-cover shrink-0 border border-border/40" />
+                ) : (
+                  <div className="w-14 h-9 rounded bg-muted shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{it.label || "Untitled slide"}</div>
+                  <div className="text-xs text-muted-foreground truncate">{it.caption || "—"}</div>
+                </div>
               </div>
-              <Input value={it.tint} onChange={(e) => update(i, { tint: e.target.value })} placeholder="Tint (Tailwind gradient classes)" />
+            }
+            actions={
+              <>
+                <Button variant="ghost" size="icon" onClick={() => move(i, -1)} aria-label="Move up"><ArrowUp className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => move(i, 1)} aria-label="Move down"><ArrowDown className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+              </>
+            }
+          >
+            <div className="grid grid-cols-12 gap-3 items-start pt-3">
+              <div className="col-span-12 sm:col-span-4">
+                <ImageUpload value={it.src} onChange={(url) => update(i, { src: url })} aspect="aspect-video" />
+              </div>
+              <div className="col-span-12 sm:col-span-8 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input value={it.label} onChange={(e) => update(i, { label: e.target.value })} placeholder="Label" />
+                  <Input value={it.caption} onChange={(e) => update(i, { caption: e.target.value })} placeholder="Caption" />
+                </div>
+                <Input value={it.tint} onChange={(e) => update(i, { tint: e.target.value })} placeholder="Tint (Tailwind gradient classes)" />
+              </div>
             </div>
-            <div className="col-span-12 sm:col-span-1 flex sm:flex-col gap-1 justify-end">
-              <Button variant="ghost" size="icon" onClick={() => move(i, -1)} aria-label="Move up"><ArrowUp className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => move(i, 1)} aria-label="Move down"><ArrowDown className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
-            </div>
-          </div>
+          </CollapsibleCard>
         ))}
       </div>
     </div>

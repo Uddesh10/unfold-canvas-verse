@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { GalleryItem } from "@/data/galleries";
-import { resolveImageUrl } from "@/lib/imageUrl";
+import { PhotoImg } from "@/components/PhotoImg";
 import { Lightbox, useLightbox } from "@/components/Lightbox";
 
 interface Props {
@@ -11,10 +11,14 @@ interface Props {
   onClose: () => void;
 }
 
+const PAGE = 24;
+
 export const AlbumDialog = ({ item, onClose }: Props) => {
   const open = !!item;
   const pushedRef = useRef(false);
   const lightbox = useLightbox();
+  const [visible, setVisible] = useState(PAGE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const photoUrls = useMemo(
     () => (item ? (item.photos && item.photos.length > 0 ? item.photos : [item.src]) : []),
@@ -28,6 +32,28 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
       })),
     [photoUrls, item],
   );
+
+  // Reset pagination when a new album opens.
+  useEffect(() => {
+    setVisible(PAGE);
+  }, [item]);
+
+  // Infinite scroll sentinel.
+  useEffect(() => {
+    if (!open) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible((v) => Math.min(v + PAGE, photoUrls.length));
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [open, photoUrls.length, visible]);
 
   // Browser back closes the album (all verticals).
   useEffect(() => {
@@ -46,7 +72,6 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
       window.removeEventListener("popstate", onPop);
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
-      // If we still own a pushed history entry (close came from UI, not popstate), pop it.
       if (pushedRef.current) {
         pushedRef.current = false;
         window.history.back();
@@ -56,6 +81,7 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
   }, [open]);
 
   const handleClose = () => onClose();
+  const shown = photoUrls.slice(0, visible);
 
   return (
     <AnimatePresence>
@@ -94,7 +120,6 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                 {item.client ?? item.alt}
               </h2>
 
-              {/* 1. Feedback / review */}
               {item.feedback && (
                 <figure className="mb-10 glass rounded-3xl p-8 md:p-10">
                   <span className="font-display text-5xl text-gradient leading-none">"</span>
@@ -109,7 +134,6 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                 </figure>
               )}
 
-              {/* 2. Videos */}
               {item.videos && item.videos.length > 0 && (
                 <div className="mb-10">
                   <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-4">
@@ -131,26 +155,40 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                 </div>
               )}
 
-              {/* 3. Photos */}
               <div>
-                <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-4">
-                  Photographs
+                <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-4 flex items-center justify-between">
+                  <span>Photographs</span>
+                  <span className="normal-case tracking-normal text-muted-foreground/70">
+                    {Math.min(visible, photoUrls.length)} / {photoUrls.length}
+                  </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {photoUrls.map((p, i) => (
-                    <motion.img
+                  {shown.map((p, i) => (
+                    <motion.div
                       key={i}
-                      src={resolveImageUrl(p)}
-                      alt={`${item.alt} — ${i + 1}`}
-                      loading="lazy"
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.5 }}
+                      transition={{ delay: (i % PAGE) * 0.03, duration: 0.4 }}
                       onClick={() => lightbox.open(i)}
-                      className="w-full h-auto rounded-2xl object-cover cursor-zoom-in hover:opacity-90 transition"
-                    />
+                      className="cursor-zoom-in hover:opacity-90 transition rounded-2xl overflow-hidden bg-muted"
+                    >
+                      <PhotoImg
+                        photo={p}
+                        variant="grid"
+                        alt={`${item.alt} — ${i + 1}`}
+                        className="w-full h-auto object-cover"
+                      />
+                    </motion.div>
                   ))}
                 </div>
+                {visible < photoUrls.length && (
+                  <div
+                    ref={sentinelRef}
+                    className="h-20 flex items-center justify-center text-xs uppercase tracking-[0.3em] text-muted-foreground mt-6"
+                  >
+                    Loading more…
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

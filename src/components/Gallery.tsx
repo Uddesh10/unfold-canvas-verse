@@ -2,9 +2,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Lightbox, useLightbox } from "@/components/Lightbox";
 import { AlbumDialog } from "@/components/AlbumDialog";
+import { PhotoImg } from "@/components/PhotoImg";
 import type { GalleryItem } from "@/data/galleries";
 import { Reveal } from "@/components/Reveal";
-import { resolveImageUrl } from "@/lib/imageUrl";
+import { pickFallback } from "@/lib/photoModel";
 
 interface Props {
   items: GalleryItem[];
@@ -39,11 +40,11 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       onMouseLeave={() => setHover(false)}
     >
       {slideshow.map((p, idx) => (
-        <img
+        <PhotoImg
           key={idx}
-          src={resolveImageUrl(p)}
+          photo={p}
+          variant="grid"
           alt={item.alt}
-          loading="lazy"
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
             idx === i ? "opacity-100" : "opacity-0"
           }`}
@@ -51,9 +52,11 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       ))}
       {/* fallback static for layout when image is masonry-auto */}
       <img
-        src={resolveImageUrl(slideshow[0])}
+        src={pickFallback(slideshow[0], "grid")}
         alt=""
         aria-hidden
+        loading="lazy"
+        decoding="async"
         className="invisible w-full h-auto"
       />
 

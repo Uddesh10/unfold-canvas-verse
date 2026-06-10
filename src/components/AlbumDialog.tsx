@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { GalleryItem } from "@/data/galleries";
 import { resolveImageUrl } from "@/lib/imageUrl";
 import { Lightbox, useLightbox } from "@/components/Lightbox";
@@ -153,12 +154,20 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
               </div>
             </motion.div>
           </div>
-          <Lightbox
-            items={lightboxItems}
-            index={lightbox.index}
-            onClose={lightbox.close}
-            onIndexChange={lightbox.set}
-          />
+          {createPortal(
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <Lightbox
+                items={lightboxItems}
+                index={lightbox.index}
+                onClose={lightbox.close}
+                onIndexChange={lightbox.set}
+              />
+            </div>,
+            document.body,
+          )}
         </motion.div>
       )}
     </AnimatePresence>

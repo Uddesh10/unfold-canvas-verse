@@ -1,31 +1,27 @@
-## Goal
+## 1. Collapsible items in admin editors
 
-Let admins upload multiple images at once in the admin section (currently `ImageUpload` only accepts a single file).
+Wrap each album/entry card in the admin editors with a collapsible header so the long list can be minimized to just the title row.
 
-## Where it matters most
+- **`GalleryEditor.tsx`** (used by Weddings, Spaces, Stories tabs): Each album card becomes a collapsible. Header row shows: small cover thumbnail, client name (or "Untitled"), caption, photo/video counts, plus the existing move-up/down/delete buttons and a chevron toggle. Body (cover upload, fields, photos list, videos, feedback) is hidden when collapsed. Default state: collapsed. Add "Expand all / Collapse all" buttons next to "Add album".
+- Apply the same collapsible pattern to the other list-style editors so the request covers the whole admin area:
+  - **`HeroSlidesEditor.tsx`** — collapse each slide row.
+  - **`TestimonialsEditor.tsx`** — collapse each testimonial.
+  - **`FaqEditor.tsx`** — collapse each Q&A.
+  - **`SubmissionsViewer.tsx`** — collapse each submission entry.
+- Use the existing Radix `Collapsible` primitive (`@/components/ui/collapsible`) with local `useState` per row for open/closed. No persistence across reloads (keeps it simple).
 
-The "Photos in album" list inside `GalleryEditor` is the main pain point — admins add photos one-by-one. Other spots (`HeroSlidesEditor`, `ShowcaseEditor`, `PhotographerEditor`, cover image in `GalleryEditor`) are inherently single-image and stay single.
+## 2. Click-to-zoom photos inside the wedding album popup
 
-## Plan
+In `src/components/AlbumDialog.tsx` (the popup that opens when a user clicks a wedding album cover), make each photo inside the "Photographs" grid clickable to open a fullscreen lightbox.
 
-1. **Extend `ImageUpload**` (`src/components/admin/ImageUpload.tsx`)
-  - Add an optional `multiple` prop (default `false`) and an optional `onUploadMany?: (urls: string[]) => void` callback.
-  - When `multiple` is on: set `<input multiple />`, upload all selected files in parallel to the `gallery` bucket, create signed URLs for each, then call `onUploadMany` with the resulting array.
-  - Keep single-file behaviour unchanged when `multiple` is not set.
-  - Show progress like "Uploading 3/8…" and a toast summary at the end (with per-file error handling so one failure doesn't block the rest).
-2. **Add a "Bulk upload" control to `GalleryEditor**` (`src/components/admin/GalleryEditor.tsx`)
-  - Next to the existing "+ Photo" button on each album, add an "Upload multiple" button using the extended `ImageUpload` in `multiple` mode.
-  - On completion, append the returned URLs to that album's `photos` array (slideshow flags untouched; admins can tick them after).
-3. **No DB / schema / RLS changes.** Storage bucket, policies, and signed-URL flow already support this.
+- Reuse the existing `Lightbox` component (`src/components/Lightbox.tsx`) plus `useLightbox` hook.
+- Build a lightweight `GalleryItem[]` from the album's `photos` array (fallback to `[item.src]` like today), pass to `Lightbox`.
+- Clicking a thumbnail calls `open(idx)`; arrow keys / prev-next buttons already work inside `Lightbox`.
+- Add `cursor-zoom-in` to the photo thumbnails for affordance.
+- Videos remain unchanged (iframes already interactive).
 
 ## Out of scope
 
-- Drag-and-drop reordering of uploaded photos (existing single up/down arrows still apply if we add them later).
-- Auto-marking newly uploaded photos as slideshow.
-- Bulk upload on hero/showcase/portrait editors (single-image by design).
-
-## Technical notes
-
-- Concurrency: `Promise.allSettled` over the file list so partial failures still return successful URLs.
-- Signed URL TTL: reuse the existing `SIGNED_TTL` constant.
-- File validation: skip non-image files with a toast, same rule as today.
+- No changes to the public Weddings page layout, reviews carousel, or data model.
+- No persistence of collapsed/expanded state.
+- No bulk actions beyond expand/collapse all in `GalleryEditor`.

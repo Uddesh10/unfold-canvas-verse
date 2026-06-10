@@ -1,12 +1,18 @@
+import { useState } from "react";
 import { useFaqStore } from "@/hooks/useFaqStore";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { SaveBar } from "@/components/admin/SaveBar";
+import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
 
 export const FaqEditor = () => {
   const { items, set, save, dirty, saving } = useFaqStore();
+  const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
+  const setOpen = (i: number, v: boolean) => setOpenMap((m) => ({ ...m, [i]: v }));
+  const expandAll = () => setOpenMap(Object.fromEntries(items.map((_, i) => [i, true])));
+  const collapseAll = () => setOpenMap({});
 
   const update = (i: number, patch: Partial<{ q: string; a: string }>) =>
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -23,28 +29,44 @@ export const FaqEditor = () => {
   return (
     <div className="space-y-4">
       <SaveBar dirty={dirty} saving={saving} save={save} />
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="text-sm text-muted-foreground">
           {items.length} question{items.length === 1 ? "" : "s"}
         </div>
-        <Button size="sm" onClick={add}>
-          <Plus className="h-3.5 w-3.5 mr-2" /> Add
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={expandAll}>Expand all</Button>
+          <Button variant="outline" size="sm" onClick={collapseAll}>Collapse all</Button>
+          <Button size="sm" onClick={add}>
+            <Plus className="h-3.5 w-3.5 mr-2" /> Add
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-3">
         {items.map((it, i) => (
-          <div key={i} className="glass rounded-2xl p-4 grid grid-cols-12 gap-3 items-start">
-            <div className="col-span-12 sm:col-span-11 space-y-2">
+          <CollapsibleCard
+            key={i}
+            open={!!openMap[i]}
+            onOpenChange={(v) => setOpen(i, v)}
+            header={
+              <div className="min-w-0">
+                <div className="text-sm font-medium truncate">{it.q || "Untitled question"}</div>
+                <div className="text-xs text-muted-foreground truncate">{it.a}</div>
+              </div>
+            }
+            actions={
+              <>
+                <Button variant="ghost" size="icon" onClick={() => move(i, -1)} aria-label="Move up"><ArrowUp className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => move(i, 1)} aria-label="Move down"><ArrowDown className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+              </>
+            }
+          >
+            <div className="space-y-2 pt-3">
               <Input value={it.q} onChange={(e) => update(i, { q: e.target.value })} placeholder="Question" />
               <Textarea value={it.a} onChange={(e) => update(i, { a: e.target.value })} placeholder="Answer" rows={3} />
             </div>
-            <div className="col-span-12 sm:col-span-1 flex sm:flex-col gap-1 justify-end">
-              <Button variant="ghost" size="icon" onClick={() => move(i, -1)} aria-label="Move up"><ArrowUp className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => move(i, 1)} aria-label="Move down"><ArrowDown className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
-            </div>
-          </div>
+          </CollapsibleCard>
         ))}
       </div>
     </div>

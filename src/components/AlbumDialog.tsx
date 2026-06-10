@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { GalleryItem } from "@/data/galleries";
 import { resolveImageUrl } from "@/lib/imageUrl";
+import { Lightbox, useLightbox } from "@/components/Lightbox";
 
 interface Props {
   item: GalleryItem | null;
@@ -12,6 +13,20 @@ interface Props {
 export const AlbumDialog = ({ item, onClose }: Props) => {
   const open = !!item;
   const pushedRef = useRef(false);
+  const lightbox = useLightbox();
+
+  const photoUrls = useMemo(
+    () => (item ? (item.photos && item.photos.length > 0 ? item.photos : [item.src]) : []),
+    [item],
+  );
+  const lightboxItems: GalleryItem[] = useMemo(
+    () =>
+      photoUrls.map((p, i) => ({
+        src: p,
+        alt: item ? `${item.alt} — ${i + 1}` : "",
+      })),
+    [photoUrls, item],
+  );
 
   // Browser back closes the album (all verticals).
   useEffect(() => {
@@ -121,7 +136,7 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                   Photographs
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {(item.photos && item.photos.length > 0 ? item.photos : [item.src]).map((p, i) => (
+                  {photoUrls.map((p, i) => (
                     <motion.img
                       key={i}
                       src={resolveImageUrl(p)}
@@ -130,13 +145,20 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04, duration: 0.5 }}
-                      className="w-full h-auto rounded-2xl object-cover"
+                      onClick={() => lightbox.open(i)}
+                      className="w-full h-auto rounded-2xl object-cover cursor-zoom-in hover:opacity-90 transition"
                     />
                   ))}
                 </div>
               </div>
             </motion.div>
           </div>
+          <Lightbox
+            items={lightboxItems}
+            index={lightbox.index}
+            onClose={lightbox.close}
+            onIndexChange={lightbox.set}
+          />
         </motion.div>
       )}
     </AnimatePresence>

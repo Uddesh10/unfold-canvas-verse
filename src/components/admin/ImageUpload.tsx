@@ -1,18 +1,17 @@
-import { useState } from "react";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { processAndUploadSerialized, type UploadProgress } from "@/lib/imagePipeline";
+import { stageFile, isPendingToken } from "@/lib/pendingUploads";
 import { PhotoImg } from "@/components/PhotoImg";
 
 interface Props {
   value?: string;
-  onChange?: (url: string) => void;
+  onChange?: (token: string) => void;
   aspect?: string;
   label?: string;
   compact?: boolean;
   multiple?: boolean;
-  onUploadMany?: (urls: string[]) => void;
+  onUploadMany?: (tokens: string[]) => void;
 }
 
 export const ImageUpload = ({
@@ -24,82 +23,38 @@ export const ImageUpload = ({
   multiple = false,
   onUploadMany,
 }: Props) => {
-  const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number; stage: UploadProgress["stage"] } | null>(null);
-  const [batch, setBatch] = useState<{ done: number; total: number } | null>(null);
-
-  const handleSingle = async (file: File) => {
+  const handleSingle = (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please pick an image file");
       return;
     }
-    setBusy(true);
-    try {
-      const json = await processAndUploadSerialized(file, (p) => setProgress(p));
-      onChange?.(json);
-      toast.success("Uploaded");
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Upload failed";
-      toast.error(msg);
-    } finally {
-      setBusy(false);
-      setProgress(null);
-    }
+    const token = stageFile(file);
+    onChange?.(token);
   };
 
-  const handleMany = async (files: File[]) => {
+  const handleMany = (files: File[]) => {
     const images = files.filter((f) => f.type.startsWith("image/"));
     const skipped = files.length - images.length;
     if (skipped > 0) toast.warning(`Skipped ${skipped} non-image file${skipped === 1 ? "" : "s"}`);
     if (images.length === 0) return;
-    setBusy(true);
-    setBatch({ done: 0, total: images.length });
-    // Process serially — each photo's WASM encode is already CPU-heavy.
-    const urls: string[] = [];
-    let failed = 0;
-    for (let i = 0; i < images.length; i++) {
-      try {
-        const json = await processAndUploadSerialized(images[i], (p) => setProgress(p));
-        urls.push(json);
-      } catch (e) {
-        failed += 1;
-        console.error("Upload failed", e);
-      }
-      setBatch({ done: i + 1, total: images.length });
-    }
-    if (urls.length > 0) onUploadMany?.(urls);
-    if (failed > 0) toast.error(`${failed} upload${failed === 1 ? "" : "s"} failed`);
-    if (urls.length > 0) toast.success(`Uploaded ${urls.length} image${urls.length === 1 ? "" : "s"}`);
-    setBusy(false);
-    setProgress(null);
-    setBatch(null);
+    const tokens = images.map((f) => stageFile(f));
+    onUploadMany?.(tokens);
+    toast.message(`${tokens.length} photo${tokens.length === 1 ? "" : "s"} staged — click Save to upload`);
   };
 
-  const stageLabel = progress
-    ? progress.stage === "decode"
-      ? "Reading…"
-      : progress.stage === "encode"
-      ? "Compressing…"
-      : progress.stage === "upload"
-      ? "Uploading…"
-      : "Finishing…"
-    : "Working…";
-
-  const buttonLabel = busy
-    ? batch
-      ? `${stageLabel} ${batch.done}/${batch.total}`
-      : stageLabel
-    : multiple
-    ? label
-    : value
-    ? "Replace"
-    : label;
+  const pending = !!value && isPendingToken(value);
+  const buttonLabel = multiple ? label : value ? "Replace" : label;
 
   return (
     <div className={cn("space-y-2", compact && "flex items-center gap-2 space-y-0")}>
       {!multiple && value && !compact && (
         <div className={`${aspect} relative overflow-hidden rounded-lg bg-muted`}>
           <PhotoImg photo={value} variant="grid" alt="" className="h-full w-full object-cover" />
+          {pending && (
+            <div className="absolute bottom-2 left-2 text-[10px] uppercase tracking-wider bg-background/80 px-2 py-0.5 rounded">
+              Pending
+            </div>
+          )}
           <button
             type="button"
             onClick={() => onChange?.("")}
@@ -111,14 +66,16 @@ export const ImageUpload = ({
         </div>
       )}
       {!multiple && value && compact && (
-        <div className="h-10 w-10 shrink-0 rounded overflow-hidden bg-muted">
+        <div className="h-10 w-10 shrink-0 rounded overflow-hidden bg-muted relative">
           <PhotoImg photo={value} variant="thumb" alt="" className="h-full w-full object-cover" />
+          {pending && (
+            <div className="absolute inset-0 ring-1 ring-primary/60 rounded pointer-events-none" />
+          )}
         </div>
       )}
       <label
         className={cn(
-          "inline-flex items-center gap-2 px-3 h-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm cursor-pointer transition-colors",
-          busy && "opacity-50 pointer-events-none"
+          "inline-flex items-center gap-2 px-3 h-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm cursor-pointer transition-colors"
         )}
       >
         <Upload className="h-3.5 w-3.5" />

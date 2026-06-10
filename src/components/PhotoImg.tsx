@@ -13,15 +13,7 @@ export const PhotoImg = forwardRef<HTMLImageElement, Props>(
   ({ photo, variant, pictureClassName, loading = "lazy", decoding = "async", ...imgProps }, ref) => {
     if (isPendingToken(photo)) {
       const url = getPendingPreview(photo) ?? "";
-      return (
-        <img
-          ref={ref}
-          src={url}
-          loading={loading}
-          decoding={decoding}
-          {...imgProps}
-        />
-      );
+      return <img ref={ref} src={url} loading={loading} decoding={decoding} {...imgProps} />;
     }
 
     const parsed = parsePhoto(photo);
@@ -38,24 +30,41 @@ export const PhotoImg = forwardRef<HTMLImageElement, Props>(
       );
     }
 
-    const v = parsed.photo[variant];
-    const width = imgProps.width ?? parsed.photo.w;
-    const height = imgProps.height ?? parsed.photo.h;
+    if (parsed.kind === "v1") {
+      const v = parsed.photo[variant];
+      const width = imgProps.width ?? parsed.photo.w;
+      const height = imgProps.height ?? parsed.photo.h;
+      return (
+        <picture className={pictureClassName}>
+          <source srcSet={v.avif} type="image/avif" />
+          <source srcSet={v.webp} type="image/webp" />
+          <img
+            ref={ref}
+            src={v.webp}
+            loading={loading}
+            decoding={decoding}
+            width={width}
+            height={height}
+            {...imgProps}
+          />
+        </picture>
+      );
+    }
 
+    // v2: single signed transform URL per variant
+    const v = parsed.photo[variant];
+    const width = imgProps.width ?? (parsed.photo.w || undefined);
+    const height = imgProps.height ?? (parsed.photo.h || undefined);
     return (
-      <picture className={pictureClassName}>
-        <source srcSet={v.avif} type="image/avif" />
-        <source srcSet={v.webp} type="image/webp" />
-        <img
-          ref={ref}
-          src={v.webp}
-          loading={loading}
-          decoding={decoding}
-          width={width}
-          height={height}
-          {...imgProps}
-        />
-      </picture>
+      <img
+        ref={ref}
+        src={v.webp}
+        loading={loading}
+        decoding={decoding}
+        width={width}
+        height={height}
+        {...imgProps}
+      />
     );
   }
 );

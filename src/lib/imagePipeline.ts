@@ -46,19 +46,21 @@ let codecsPromise: Promise<{
 function loadCodecs() {
   if (codecsPromise) return codecsPromise;
   codecsPromise = (async () => {
-    const [avifMod, webpMod, resizeMod] = await Promise.all([
-      import("@jsquash/avif"),
-      import("@jsquash/webp"),
+    const [avifEncodeMod, webpEncodeMod, resizeMod] = await Promise.all([
+      // `init` is exported from each codec's encode module but not re-exported
+      // from the package index, so we import the submodules directly.
+      import("@jsquash/avif/encode.js"),
+      import("@jsquash/webp/encode.js"),
       import("@jsquash/resize"),
     ]);
 
     // Tell Emscripten where to fetch the codec WASM. `locateFile` is called
     // with the bare filename the glue would otherwise resolve relative to
     // the JS module URL.
-    await avifMod.init(undefined, {
+    await (avifEncodeMod as never as { init: Function }).init(undefined, {
       locateFile: (path: string) => (path.endsWith(".wasm") ? avifEncWasmUrl : path),
     });
-    await webpMod.init(undefined, {
+    await (webpEncodeMod as never as { init: Function }).init(undefined, {
       locateFile: (path: string) => {
         if (path.endsWith("webp_enc_simd.wasm")) return webpEncSimdWasmUrl;
         if (path.endsWith(".wasm")) return webpEncWasmUrl;
@@ -70,8 +72,8 @@ function loadCodecs() {
     await resizeMod.initResize(resizeWasmUrl);
 
     return {
-      encodeAvif: avifMod.encode as never,
-      encodeWebp: webpMod.encode as never,
+      encodeAvif: (avifEncodeMod as never as { default: Function }).default as never,
+      encodeWebp: (webpEncodeMod as never as { default: Function }).default as never,
       resize: resizeMod.default as never,
     };
   })();

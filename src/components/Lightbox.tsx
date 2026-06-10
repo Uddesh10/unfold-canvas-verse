@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { GalleryItem } from "@/data/galleries";
-import { resolveImageUrl } from "@/lib/imageUrl";
+import { PhotoImg } from "@/components/PhotoImg";
 
 interface Props {
   items: GalleryItem[];
@@ -69,9 +69,11 @@ export const Lightbox = ({ items, index, onClose, onIndexChange }: Props) => {
             onClick={(e) => e.stopPropagation()}
             className="max-w-[92vw] max-h-[88vh]"
           >
-            <img
-              src={resolveImageUrl(items[index].src)}
+            <PhotoImg
+              photo={items[index].src}
+              variant="full"
               alt={items[index].alt}
+              loading="eager"
               className="max-w-[92vw] max-h-[80vh] object-contain rounded-md shadow-glass"
             />
             {items[index].caption && (

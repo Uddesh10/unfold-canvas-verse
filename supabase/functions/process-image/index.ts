@@ -1,39 +1,26 @@
-// Server-side image processing: decode → resize to thumb/grid/full → encode
-// AVIF + WebP → upload 6 derivatives to the private `gallery` bucket →
-// return a serialized `Photo` JSON string.
+// Server-side image upload: stores the original in the private `gallery`
+// bucket and returns a serialized v:2 Photo containing signed Storage
+// transform URLs for thumb/grid/full variants. Resizing happens on-demand
+// at Supabase Storage's image CDN, so this function uses minimal memory.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import decodeJpeg from "npm:@jsquash/jpeg@1.5.0/decode.js";
-import decodePng from "npm:@jsquash/png@3.0.1/decode.js";
-import decodeWebp from "npm:@jsquash/webp@1.4.0/decode.js";
-import decodeAvifFn from "npm:@jsquash/avif@1.3.0/decode.js";
-import encodeAvif from "npm:@jsquash/avif@1.3.0/encode.js";
-import encodeWebp from "npm:@jsquash/webp@1.4.0/encode.js";
-import resize from "npm:@jsquash/resize@2.1.0";
 
-const SIGNED_TTL = 60 * 60 * 24 * 365 * 10;
+const SIGNED_TTL = 60 * 60 * 24 * 365 * 10; // 10 years
 const MAX_BYTES = 25 * 1024 * 1024;
 
 const VARIANTS = [
-  { name: "thumb", longEdge: 480, quality: 55 },
-  { name: "grid", longEdge: 1280, quality: 65 },
-  { name: "full", longEdge: 2400, quality: 72 },
+  { name: "thumb", width: 480, quality: 60 },
+  { name: "grid", width: 1280, quality: 70 },
+  { name: "full", width: 2400, quality: 78 },
 ] as const;
 
-async function decodeAny(buf: ArrayBuffer, mime: string): Promise<ImageData> {
-  if (mime.includes("jpeg") || mime.includes("jpg")) return await decodeJpeg(buf);
-  if (mime.includes("png")) return await decodePng(buf);
-  if (mime.includes("webp")) return await decodeWebp(buf);
-  if (mime.includes("avif")) return await decodeAvifFn(buf);
-  // Fallback: try jpeg
-  return await decodeJpeg(buf);
-}
-
-function targetSize(w: number, h: number, longEdge: number) {
-  if (Math.max(w, h) <= longEdge) return { w, h };
-  if (w >= h) return { w: longEdge, h: Math.round((h * longEdge) / w) };
-  return { w: Math.round((w * longEdge) / h), h: longEdge };
+function extFromMime(mime: string): string {
+  if (mime.includes("png")) return "png";
+  if (mime.includes("webp")) return "webp";
+  if (mime.includes("avif")) return "avif";
+  if (mime.includes("gif")) return "gif";
+  return "jpg";
 }
 
 Deno.serve(async (req) => {
@@ -52,7 +39,8 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+    const anonKey =
+      Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -98,67 +86,48 @@ Deno.serve(async (req) => {
       });
     }
 
-    const buf = await file.arrayBuffer();
-    const src = await decodeAny(buf, file.type);
-    const srcW = src.width;
-    const srcH = src.height;
-
     const id = crypto.randomUUID();
-    const sources: Record<string, { avif: string; webp: string }> = {};
+    const ext = extFromMime(file.type);
+    const path = `${id}/original.${ext}`;
 
+    const { error: upErr } = await admin.storage
+      .from("gallery")
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+
+    const sources: Record<string, { webp: string }> = {};
     for (const spec of VARIANTS) {
-      const { w, h } = targetSize(srcW, srcH, spec.longEdge);
-      const resized =
-        w === srcW && h === srcH
-          ? src
-          : await resize(src, { width: w, height: h, method: "lanczos3" });
-
-      const [avifBuf, webpBuf] = await Promise.all([
-        encodeAvif(resized, { quality: spec.quality, speed: 8 }),
-        encodeWebp(resized, { quality: spec.quality }),
-      ]);
-
-      const avifPath = `${id}/${spec.name}.avif`;
-      const webpPath = `${id}/${spec.name}.webp`;
-
-      const [{ error: e1 }, { error: e2 }] = await Promise.all([
-        admin.storage.from("gallery").upload(avifPath, new Blob([avifBuf], { type: "image/avif" }), {
-          contentType: "image/avif",
-          upsert: false,
-        }),
-        admin.storage.from("gallery").upload(webpPath, new Blob([webpBuf], { type: "image/webp" }), {
-          contentType: "image/webp",
-          upsert: false,
-        }),
-      ]);
-      if (e1) throw e1;
-      if (e2) throw e2;
-
-      const [{ data: a }, { data: wd }] = await Promise.all([
-        admin.storage.from("gallery").createSignedUrl(avifPath, SIGNED_TTL),
-        admin.storage.from("gallery").createSignedUrl(webpPath, SIGNED_TTL),
-      ]);
-
-      sources[spec.name] = {
-        avif: a?.signedUrl ?? "",
-        webp: wd?.signedUrl ?? "",
-      };
+      const { data, error } = await admin.storage
+        .from("gallery")
+        .createSignedUrl(path, SIGNED_TTL, {
+          transform: {
+            width: spec.width,
+            resize: "contain",
+            quality: spec.quality,
+          },
+        });
+      if (error) throw error;
+      sources[spec.name] = { webp: data?.signedUrl ?? "" };
     }
 
     const photo = {
-      v: 1,
+      v: 2 as const,
       id,
+      path,
       thumb: sources.thumb,
       grid: sources.grid,
       full: sources.full,
-      w: srcW,
-      h: srcH,
+      w: 0,
+      h: 0,
     };
 
-    return new Response(JSON.stringify({ photo, serialized: JSON.stringify(photo) }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ photo, serialized: JSON.stringify(photo) }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
     console.error("process-image error", err);
     const msg = err instanceof Error ? err.message : "Unknown error";

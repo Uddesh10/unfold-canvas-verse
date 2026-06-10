@@ -14,6 +14,10 @@ import { resolveImageUrl } from "@/lib/imageUrl";
 
 export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
   const { items, set, save, dirty, saving } = useGalleryStore(vertical);
+  const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
+  const setOpen = (i: number, v: boolean) => setOpenMap((m) => ({ ...m, [i]: v }));
+  const expandAll = () => setOpenMap(Object.fromEntries(items.map((_, i) => [i, true])));
+  const collapseAll = () => setOpenMap({});
 
   const update = (i: number, patch: Partial<GalleryItem>) => {
     set(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));

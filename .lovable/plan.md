@@ -1,53 +1,48 @@
 ## Problem
 
-`pending:…` tokens are being persisted to the DB (e.g. in Showcase: `src: "pending:520ba…"`). The edge function `process-image` is healthy and deployed, but it's never called because only `useGalleryStore.save()` resolves staged tokens. All other admin editors save via `useSiteContent`, which writes the raw value untouched.
+The `process-image` edge function hits **546 Memory limit exceeded**. The `@jsquash` WASM codecs decode the full image to raw RGBA in memory, then encode 3 sizes × 2 formats = 6 derivatives. For a 10MB JPEG that's ~100MB+ of raw pixels plus WASM heap — well over the 150MB edge-runtime cap.
 
-## Fix
+WASM-based encoding on the edge is the wrong tool here. The fix is to stop encoding server-side and let Supabase Storage's built-in image transformation CDN do the resizing on demand.
 
-Move pending-token resolution into a single shared helper and apply it everywhere we save, so any editor using `ImageUpload` benefits automatically.
+## Plan
 
-### 1. New shared helper — `src/lib/resolvePending.ts`
+### 1. Rewrite `supabase/functions/process-image/index.ts`
+Strip out all `@jsquash` / `resize` imports and logic. New flow:
+- Verify auth + admin role (unchanged).
+- Validate file (image mime, ≤25MB).
+- Upload the **original** to `gallery/{uuid}/original.{ext}` via service role.
+- Return a serialized `Photo` JSON that points at the original path (not signed URLs), e.g.
+  ```json
+  { "v": 2, "id": "...", "path": "uuid/original.jpg", "ext": "jpg" }
+  ```
+- No decode, no encode, no resize — peak memory ≈ file size only.
 
-- Export `async function resolveAllPending<T>(value: T): Promise<T>`.
-- Deep-walks any value (object / array / string), collects every string with the `pending:` prefix, uploads each staged `File` once via `uploadViaEdge`, then returns a structurally identical value with every token replaced by the serialized `Photo` JSON.
-- Concurrency limit of 3, progress toast (`Uploading N/M photos…`), error toast on failure (re-throws so the caller can abort the save).
-- Calls `clearPending(token)` for each successfully uploaded token.
-- If a token has no staged file (e.g. registry lost on reload), throw a clear error: "Staged image missing — please re-select".
-
-### 2. `src/hooks/useSiteContent.ts`
-
-In `save()`, before writing to the DB:
-
+### 2. Client-side URL builder — update `src/lib/imageUrl.ts` (and `PhotoImg.tsx` as needed)
+Resolve a `Photo` to a rendered URL using Supabase Storage's transform API:
 ```ts
-const resolved = await resolveAllPending(valueRef.current);
-setValue(resolved);
-// then upsert `resolved` instead of the raw value
+supabase.storage.from('gallery').createSignedUrl(path, TTL, {
+  transform: { width, height, resize: 'cover', quality, format: 'origin' }
+})
 ```
+Variant sizing stays the same (thumb 480 / grid 1280 / full 2400). Storage returns WebP automatically to browsers that send `Accept: image/webp`. AVIF is dropped (Storage transforms don't emit AVIF today); WebP+original fallback covers all modern browsers.
 
-This single change covers Showcase, Hero slides, Photographer, and any future editor built on `useSiteContent`.
+Cache signed-transform URLs in memory per session so we don't re-sign on every render.
 
-### 3. `src/hooks/useGalleryStore.ts`
+### 3. Back-compat for already-stored photos
+Existing rows store the v1 shape (`thumb/grid/full` with pre-signed avif+webp URLs). Keep the old resolver path: if `photo.v !== 2`, render as today. New uploads write v2 and use the transform CDN.
 
-Replace the local `resolvePendingTokens(items)` with a call to the shared helper:
+### 4. No changes needed to
+- `resolvePending.ts`, `pendingUploads.ts`, `ImageUpload.tsx`, `useSiteContent.ts`, `useGalleryStore.ts` — they only care about the serialized string the edge function returns.
 
-```ts
-const resolved = await resolveAllPending(ref.current);
-```
+## Technical notes
 
-Remove the now-duplicate logic.
+- The `gallery` bucket stays private; transformed images are fetched via signed URLs that include the `transform` query (Storage validates the signature includes the transform params).
+- Storage image transforms require the project's image-transformation add-on to be enabled (Lovable Cloud has it on by default for the `gallery`-style buckets).
+- Memory after this change: edge function only buffers the upload → roughly the file size, well under 150MB even for 25MB inputs.
+- Speed: one upload per image instead of 6 + WASM work. Expect ~3–10× faster Saves.
 
-### 4. Verification
+## Verification
 
-- Open Showcase admin, replace a slide image, click Save.
-- Network tab: a `POST /functions/v1/process-image` request fires per staged file.
-- DB row: `src` is the serialized `Photo` JSON (`{"v":1,"id":…}`), no more `pending:` strings.
-- Same check for Hero slides, Photographer, and Gallery editors.
-- Edge function logs (`process-image`) show successful invocations.
-
-## Files
-
-- **New**: `src/lib/resolvePending.ts`
-- **Edit**: `src/hooks/useSiteContent.ts` — resolve pending tokens before DB write.
-- **Edit**: `src/hooks/useGalleryStore.ts` — delegate to shared helper.
-
-No edge-function changes needed; `process-image` is already deployed and working.
+1. Open Showcase admin, replace one slide, click Save → single `process-image` invocation succeeds (no 546), DB row has `v:2` JSON.
+2. Page reload → `PhotoImg` renders via Storage transform URL; Network shows `image/webp` for the thumb/grid variants.
+3. Old v1 rows still render correctly.

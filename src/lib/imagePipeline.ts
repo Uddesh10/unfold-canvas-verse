@@ -1,12 +1,12 @@
-// Browser-side multi-variant encoding + upload to the external Storage bucket.
-// Produces thumb/grid/full WebP variants plus an untouched JPEG/original
-// fallback, then uploads them as `{id}/{variant}.{ext}`. Returns a v:2 Photo
-// JSON string with just the id — variant paths are deterministic.
+// Browser-side multi-variant encoding + upload to the `gallery` Storage bucket.
+// Produces thumb/grid/full WebP variants plus an untouched original fallback,
+// uploaded as `{id}/{variant}.{ext}`. Returns a v:2 Photo JSON string.
 
 import imageCompression from "browser-image-compression";
-import { storageSupabase, STORAGE_BUCKET } from "@/integrations/supabase/storageClient";
+import { supabase } from "@/integrations/supabase/client";
 import { serializePhoto, type Variant } from "@/lib/photoModel";
 
+const STORAGE_BUCKET = "gallery";
 const MAX_BYTES = 25 * 1024 * 1024;
 
 type VariantSpec = { name: Variant; maxWidth: number; quality: number };
@@ -61,7 +61,6 @@ export async function uploadViaEdge(file: File): Promise<string> {
   const id = crypto.randomUUID();
   const origExt = extFromMime(file.type);
 
-  // Encode all variants in parallel (web workers).
   const [thumb, grid, full, dims] = await Promise.all([
     encodeVariant(file, VARIANT_SPECS[0]),
     encodeVariant(file, VARIANT_SPECS[1]),
@@ -69,7 +68,6 @@ export async function uploadViaEdge(file: File): Promise<string> {
     getDimensions(file),
   ]);
 
-  // Upload all 4 objects. Concurrency is implicit via Promise.all (4 is fine).
   const uploads: Array<{ path: string; blob: Blob; type: string }> = [
     { path: `${id}/thumb.webp`, blob: thumb, type: "image/webp" },
     { path: `${id}/grid.webp`, blob: grid, type: "image/webp" },
@@ -79,7 +77,7 @@ export async function uploadViaEdge(file: File): Promise<string> {
 
   const results = await Promise.all(
     uploads.map(({ path, blob, type }) =>
-      storageSupabase.storage.from(STORAGE_BUCKET).upload(path, blob, {
+      supabase.storage.from(STORAGE_BUCKET).upload(path, blob, {
         contentType: type,
         upsert: false,
         cacheControl: "31536000",

@@ -1,5 +1,5 @@
-import { forwardRef, useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
-import { parsePhoto, photoUrl, photoOriginalUrl, type Variant } from "@/lib/photoModel";
+import { forwardRef, useEffect, useState, type ImgHTMLAttributes } from "react";
+import { parsePhoto, photoUrl, type Variant } from "@/lib/photoModel";
 import { resolveImageUrl } from "@/lib/imageUrl";
 import { isPendingToken, getPendingPreview } from "@/lib/pendingUploads";
 
@@ -12,7 +12,6 @@ interface Props extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> {
 export const PhotoImg = forwardRef<HTMLImageElement, Props>(
   ({ photo, variant, pictureClassName: _pictureClassName, loading = "lazy", decoding = "async", onError, ...imgProps }, ref) => {
     const [resolved, setResolved] = useState<string>("");
-    const triedFallback = useRef(false);
 
     const pendingPreview = isPendingToken(photo) ? getPendingPreview(photo) ?? "" : null;
     const parsed = pendingPreview === null ? parsePhoto(photo) : null;
@@ -22,7 +21,6 @@ export const PhotoImg = forwardRef<HTMLImageElement, Props>(
     useEffect(() => {
       if (!v2) return;
       let cancelled = false;
-      triedFallback.current = false;
       photoUrl(photo, variant)
         .then((url) => { if (!cancelled) setResolved(url); })
         .catch(() => { if (!cancelled) setResolved(""); });
@@ -37,14 +35,7 @@ export const PhotoImg = forwardRef<HTMLImageElement, Props>(
         src={src}
         loading={loading}
         decoding={decoding}
-        onError={(e) => {
-          if (v2 && !triedFallback.current) {
-            triedFallback.current = true;
-            photoOriginalUrl(photo).then((url) => setResolved(url)).catch(() => {});
-            return;
-          }
-          onError?.(e);
-        }}
+        onError={onError}
         {...imgProps}
       />
     );

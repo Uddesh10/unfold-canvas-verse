@@ -1,5 +1,5 @@
-import { forwardRef, type ImgHTMLAttributes } from "react";
-import { parsePhoto, type Variant } from "@/lib/photoModel";
+import { forwardRef, useEffect, useState, type ImgHTMLAttributes } from "react";
+import { parsePhoto, photoUrl, type Variant } from "@/lib/photoModel";
 import { resolveImageUrl } from "@/lib/imageUrl";
 import { isPendingToken, getPendingPreview } from "@/lib/pendingUploads";
 
@@ -10,59 +10,31 @@ interface Props extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> {
 }
 
 export const PhotoImg = forwardRef<HTMLImageElement, Props>(
-  ({ photo, variant, pictureClassName, loading = "lazy", decoding = "async", ...imgProps }, ref) => {
-    if (isPendingToken(photo)) {
-      const url = getPendingPreview(photo) ?? "";
-      return <img ref={ref} src={url} loading={loading} decoding={decoding} {...imgProps} />;
-    }
+  ({ photo, variant, pictureClassName: _pictureClassName, loading = "lazy", decoding = "async", ...imgProps }, ref) => {
+    const [resolved, setResolved] = useState<string>("");
 
-    const parsed = parsePhoto(photo);
+    const pendingPreview = isPendingToken(photo) ? getPendingPreview(photo) ?? "" : null;
+    const parsed = pendingPreview === null ? parsePhoto(photo) : null;
+    const legacyUrl = parsed?.kind === "legacy" ? resolveImageUrl(parsed.url) : null;
+    const v2Path = parsed?.kind === "v2" ? parsed.photo.path : null;
 
-    if (parsed.kind === "legacy") {
-      return (
-        <img
-          ref={ref}
-          src={resolveImageUrl(parsed.url)}
-          loading={loading}
-          decoding={decoding}
-          {...imgProps}
-        />
-      );
-    }
+    useEffect(() => {
+      if (!v2Path) return;
+      let cancelled = false;
+      photoUrl(photo, variant)
+        .then((url) => { if (!cancelled) setResolved(url); })
+        .catch(() => { if (!cancelled) setResolved(""); });
+      return () => { cancelled = true; };
+    }, [photo, variant, v2Path]);
 
-    if (parsed.kind === "v1") {
-      const v = parsed.photo[variant];
-      const width = imgProps.width ?? parsed.photo.w;
-      const height = imgProps.height ?? parsed.photo.h;
-      return (
-        <picture className={pictureClassName}>
-          <source srcSet={v.avif} type="image/avif" />
-          <source srcSet={v.webp} type="image/webp" />
-          <img
-            ref={ref}
-            src={v.webp}
-            loading={loading}
-            decoding={decoding}
-            width={width}
-            height={height}
-            {...imgProps}
-          />
-        </picture>
-      );
-    }
+    const src = pendingPreview ?? legacyUrl ?? resolved;
 
-    // v2: single signed transform URL per variant
-    const v = parsed.photo[variant];
-    const width = imgProps.width ?? (parsed.photo.w || undefined);
-    const height = imgProps.height ?? (parsed.photo.h || undefined);
     return (
       <img
         ref={ref}
-        src={v.webp}
+        src={src}
         loading={loading}
         decoding={decoding}
-        width={width}
-        height={height}
         {...imgProps}
       />
     );

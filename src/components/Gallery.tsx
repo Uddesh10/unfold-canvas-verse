@@ -5,7 +5,7 @@ import { AlbumDialog } from "@/components/AlbumDialog";
 import { PhotoImg } from "@/components/PhotoImg";
 import type { GalleryItem } from "@/data/galleries";
 import { Reveal } from "@/components/Reveal";
-import { pickFallback } from "@/lib/photoModel";
+
 
 interface Props {
   items: GalleryItem[];
@@ -50,13 +50,12 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
           }`}
         />
       ))}
-      {/* fallback static for layout when image is masonry-auto */}
-      <img
-        src={pickFallback(slideshow[0], "grid")}
+      {/* layout spacer so masonry-auto can measure height */}
+      <PhotoImg
+        photo={slideshow[0]}
+        variant="grid"
         alt=""
         aria-hidden
-        loading="lazy"
-        decoding="async"
         className="invisible w-full h-auto"
       />
 

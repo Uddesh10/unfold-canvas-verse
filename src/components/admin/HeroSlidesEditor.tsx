@@ -6,7 +6,7 @@ import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
-import { resolveImageUrl } from "@/lib/imageUrl";
+import { PhotoImg } from "@/components/PhotoImg";
 
 export const HeroSlidesEditor = () => {
   const { items, set, save, dirty, saving } = useHeroSlidesStore();
@@ -62,7 +62,7 @@ export const HeroSlidesEditor = () => {
             header={
               <div className="flex items-center gap-3 min-w-0">
                 {it.src ? (
-                  <img src={resolveImageUrl(it.src)} alt="" className="w-14 h-9 rounded object-cover shrink-0 border border-border/40" />
+                  <PhotoImg photo={it.src} variant="thumb" alt="" className="w-14 h-9 rounded object-cover shrink-0 border border-border/40" />
                 ) : (
                   <div className="w-14 h-9 rounded bg-muted shrink-0" />
                 )}

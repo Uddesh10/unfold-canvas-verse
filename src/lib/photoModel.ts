@@ -4,7 +4,9 @@
 //   `{id}/original.{ext}` for download/fallback.
 // - plain URL string: legacy/external (seed data, Unsplash, Drive, etc.).
 
-import { storageSupabase, STORAGE_BUCKET } from "@/integrations/supabase/storageClient";
+import { supabase } from "@/integrations/supabase/client";
+
+const STORAGE_BUCKET = "gallery";
 
 export type Variant = "thumb" | "grid" | "full";
 
@@ -49,7 +51,7 @@ async function signPath(path: string): Promise<string> {
   const now = Date.now();
   const hit = urlCache.get(path);
   if (hit && hit.expires > now + 60_000) return hit.url;
-  const { data, error } = await storageSupabase.storage
+  const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
     .createSignedUrl(path, SIGNED_TTL);
   if (error || !data?.signedUrl) throw error ?? new Error("Failed to sign URL");

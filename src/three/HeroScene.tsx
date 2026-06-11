@@ -30,8 +30,9 @@ export const HeroScene = () => {
           transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
-          <img
-            src={resolveImageUrl(slides[i].src)}
+          <PhotoImg
+            photo={slides[i].src}
+            variant="full"
             alt={slides[i].caption}
             className="absolute inset-0 h-full w-full object-cover"
             draggable={false}

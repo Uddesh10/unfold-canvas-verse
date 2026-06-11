@@ -1,48 +1,57 @@
-## Problem
+## Goal
 
-The `process-image` edge function hits **546 Memory limit exceeded**. The `@jsquash` WASM codecs decode the full image to raw RGBA in memory, then encode 3 sizes × 2 formats = 6 derivatives. For a 10MB JPEG that's ~100MB+ of raw pixels plus WASM heap — well over the 150MB edge-runtime cap.
+Remove the `process-image` edge function entirely. The client uploads originals directly to the `gallery` bucket and renders variants via Supabase Storage Image Transformations.
 
-WASM-based encoding on the edge is the wrong tool here. The fix is to stop encoding server-side and let Supabase Storage's built-in image transformation CDN do the resizing on demand.
+## Why this works
 
-## Plan
+- The `gallery` bucket already has RLS that allows admins to INSERT/UPDATE/DELETE and anyone to SELECT (migration `20260607102210_*`).
+- Admin auth happens client-side already; Supabase enforces the RLS check on upload.
+- No server compute → no 546 memory errors, no signed-URL TTL management, no cold starts.
 
-### 1. Rewrite `supabase/functions/process-image/index.ts`
-Strip out all `@jsquash` / `resize` imports and logic. New flow:
-- Verify auth + admin role (unchanged).
-- Validate file (image mime, ≤25MB).
-- Upload the **original** to `gallery/{uuid}/original.{ext}` via service role.
-- Return a serialized `Photo` JSON that points at the original path (not signed URLs), e.g.
-  ```json
-  { "v": 2, "id": "...", "path": "uuid/original.jpg", "ext": "jpg" }
-  ```
-- No decode, no encode, no resize — peak memory ≈ file size only.
+## Changes
 
-### 2. Client-side URL builder — update `src/lib/imageUrl.ts` (and `PhotoImg.tsx` as needed)
-Resolve a `Photo` to a rendered URL using Supabase Storage's transform API:
-```ts
-supabase.storage.from('gallery').createSignedUrl(path, TTL, {
-  transform: { width, height, resize: 'cover', quality, format: 'origin' }
-})
-```
-Variant sizing stays the same (thumb 480 / grid 1280 / full 2400). Storage returns WebP automatically to browsers that send `Accept: image/webp`. AVIF is dropped (Storage transforms don't emit AVIF today); WebP+original fallback covers all modern browsers.
+### 1. Flip `gallery` bucket to public
 
-Cache signed-transform URLs in memory per session so we don't re-sign on every render.
+Required so we can use `getPublicUrl(..., { transform })` without signing. RLS for writes remains admin-only (public buckets still respect INSERT/UPDATE/DELETE policies; only SELECT is bypassed, which the existing policy already permitted).
 
-### 3. Back-compat for already-stored photos
-Existing rows store the v1 shape (`thumb/grid/full` with pre-signed avif+webp URLs). Keep the old resolver path: if `photo.v !== 2`, render as today. New uploads write v2 and use the transform CDN.
+### 2. Rewrite `src/lib/imagePipeline.ts`
 
-### 4. No changes needed to
-- `resolvePending.ts`, `pendingUploads.ts`, `ImageUpload.tsx`, `useSiteContent.ts`, `useGalleryStore.ts` — they only care about the serialized string the edge function returns.
+Replace `uploadViaEdge(file)` with a direct Storage upload:
+
+- Generate `${uuid}/original.${ext}` path.
+- `supabase.storage.from('gallery').upload(path, file, { contentType, upsert: false })`.
+- Return a serialized v:2 Photo: `{ v:2, id, path, ext, w:0, h:0 }` — **no URLs stored**. Variants are computed at render time.
+
+### 3. Update `src/lib/photoModel.ts`
+
+v:2 stores only `{ v, id, path, ext, w, h }`. Drop the embedded `thumb/grid/full` URL objects from v:2 (still kept on v:1 for back-compat). Add a helper `photoUrl(photo, variant)` that calls `supabase.storage.from('gallery').getPublicUrl(path, { transform: { width, resize:'contain', quality } })` with the per-variant spec (thumb 480/q60, grid 1280/q70, full 2400/q78).
+
+### 4. Update `src/components/PhotoImg.tsx`
+
+For v:2, call `photoUrl(photo, variant)` to get the transform URL on render. v:1 and legacy branches unchanged.
+
+### 5. Delete the edge function
+
+- Remove `supabase/functions/process-image/` directory.
+- Call `supabase--delete_edge_functions(["process-image"])` to remove the deployed function.
+
+### 6. `resolvePending.ts`
+
+No structural change — it still walks values and replaces `pending:*` tokens by calling the new `uploadViaEdge` (now a direct Storage upload). Rename optional; keep the export name to avoid touching `useSiteContent.ts` and `useGalleryStore.ts`.
+
+## Back-compat
+
+- Remove all backward compatibility this change will be latest
 
 ## Technical notes
 
-- The `gallery` bucket stays private; transformed images are fetched via signed URLs that include the `transform` query (Storage validates the signature includes the transform params).
-- Storage image transforms require the project's image-transformation add-on to be enabled (Lovable Cloud has it on by default for the `gallery`-style buckets).
-- Memory after this change: edge function only buffers the upload → roughly the file size, well under 150MB even for 25MB inputs.
-- Speed: one upload per image instead of 6 + WASM work. Expect ~3–10× faster Saves.
+- Public bucket may be blocked by `cloud_block_public_buckets`. If `storage_update_bucket` errors, fall back to keeping the bucket private and using `createSignedUrl(path, TTL, { transform })` from the **client** on demand, cached per session. Same end result, slightly more code.
+- Storage image transforms only emit WebP/JPEG (no AVIF) — acceptable; covers all modern browsers via content negotiation.
+- Max upload size is the bucket's default (50MB). Validate `≤25MB` and `image/*` mime client-side before upload.
 
 ## Verification
 
-1. Open Showcase admin, replace one slide, click Save → single `process-image` invocation succeeds (no 546), DB row has `v:2` JSON.
-2. Page reload → `PhotoImg` renders via Storage transform URL; Network shows `image/webp` for the thumb/grid variants.
-3. Old v1 rows still render correctly.
+1. Showcase admin → replace a slide → Save. Network shows a single `PUT` to `/storage/v1/object/gallery/...` (no function invoke). DB row has v:2 JSON with `path`.
+2. Reload page → image requests go to `/storage/v1/render/image/public/gallery/<path>?width=...` and return WebP.
+3. Old v:1 rows still render.
+4. Edge functions list no longer contains `process-image`.

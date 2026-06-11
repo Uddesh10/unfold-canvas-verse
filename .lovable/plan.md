@@ -1,66 +1,46 @@
-## Strategy
+## Problem
 
-External Supabase project has **no Image Transformations add-on**, so we generate variants **in the browser at upload time** using `browser-image-compression` and store each variant as its own object. At render time we just sign the right pre-generated file — no transform endpoint needed.
+1. **Hero slides don't load.** `HeroScene.tsx` and the `HeroSlidesEditor` thumbnail render slides with `<img src={resolveImageUrl(slide.src)}>`. When `src` is a v:2 JSON string (e.g. `{"v":2,"id":"e9fdad3a…","ext":"webp",…}`), `resolveImageUrl` returns the JSON string as-is and the browser can't load it. The Weddings gallery works because it uses `PhotoImg`, which parses the JSON and resolves a signed Storage URL.
 
-## 1. Second Supabase client (external storage project)
+2. **Weddings gallery falls back to the original file.** `PhotoImg`'s `onError` handler swaps the resolved variant URL for `photoOriginalUrl(...)` whenever the `<img>` fails to load even once. The user wants the gallery (thumbnails + lightbox) to stay on the encoded WebP variants and never download the multi-MB original.
 
-New file `src/integrations/supabase/storageClient.ts`:
+## Plan
 
-- Reads `VITE_STORAGE_SUPABASE_URL` and `VITE_STORAGE_SUPABASE_ANON_KEY` from env.
-- Exports `storageSupabase` — used **only** for `storage.from('gallery')` calls.
-- Existing `@/integrations/supabase/client` stays untouched for DB/auth.
+### 1. Render hero slides through `PhotoImg`
 
-You'll add those two env values after the plan is approved (publishable anon key is safe in code).
+**`src/three/HeroScene.tsx`** — replace the raw `<img>` with `PhotoImg` using the `full` variant so v:2 photos get signed and legacy URLs still resolve via the existing `parsePhoto` legacy branch.
 
-## 2. Browser encoding pipeline
+```tsx
+<PhotoImg
+  photo={slides[i].src}
+  variant="full"
+  alt={slides[i].caption}
+  className="absolute inset-0 h-full w-full object-cover"
+  draggable={false}
+/>
+```
 
-Rewrite `src/lib/imagePipeline.ts`:
+Drop the now-unused `resolveImageUrl` import.
 
-- Use `browser-image-compression` (pure JS, no wasm fetch issues).
-- On upload, produce variants in parallel:
-  - `thumb` — 480w, q0.60, WebP
-  - `grid` — 1280w, q0.70, WebP
-  - `full` — 2400w, q0.78, WebP
-  - `original.jpg` — untouched JPEG fallback (for downloads / WebP-rejecting contexts)
-- Upload all 4 to `gallery/{id}/{variant}.webp` (+ `original.jpg`) concurrently (limit 3).
-- Surface progress in the existing toast.
-- Persist v:2 JSON: `{ v:2, id, ext:"webp", w, h }` — `path` no longer needed; variant filenames are deterministic from `id`.
+**`src/components/admin/HeroSlidesEditor.tsx`** — replace the small preview `<img src={resolveImageUrl(it.src)} …>` with `<PhotoImg photo={it.src} variant="thumb" …>` so the admin list also renders v:2 thumbnails. Drop the unused import.
 
-## 3. Render model
+### 2. Stop auto-falling back to the original in `PhotoImg`
 
-`src/lib/photoModel.ts`:
+**`src/components/PhotoImg.tsx`** — remove the `triedFallback` / `photoOriginalUrl` branch from `onError`. The fallback was the only path that ever requested `{id}/original.{ext}` from the Weddings gallery; without it, the grid stays on `grid.webp` and the lightbox stays on `full.webp`. `onError` simply forwards to the caller's handler (if any).
 
-- `photoUrl(photoStr, variant)` signs `gallery/{id}/{variant}.webp` via `storageSupabase.storage.from('gallery').createSignedUrl(path, 7d)`.
-- Session cache keyed by `id|variant` (already in place).
-- Legacy plain-URL branch unchanged (seed/Unsplash images keep working).
-- `PhotoImg.tsx` `onError`: retry once with `original.jpg` before giving up.
+The `photoOriginalUrl` export stays in `photoModel.ts` for future "download original" UI; it just won't be invoked by `PhotoImg` anymore.
 
-## 4. UI/admin tweaks
+### 3. Verification
 
-- `ImageUpload.tsx`: per-file progress (encoding → uploading).
-- No changes to `Gallery.tsx`, `useSiteContent.ts`, or RLS.
+- Open the home page → hero slide for the v:2 photo renders (network shows a signed request to `gallery/<id>/full.webp`), and the caption/dots still cycle.
+- Admin → Hero carousel: the row thumbnails render the uploaded photo instead of a broken image.
+- Weddings → open the gallery and the album/lightbox: requests go to `grid.webp` and `full.webp` only; no `original.*` request fires even if a variant 404s.
+- Legacy Unsplash slides/photos (plain URL strings) keep rendering as before.
 
-## 5. Dependencies
+## Files touched
 
-- `browser-image-compression` (~30KB gz).
+- `src/three/HeroScene.tsx`
+- `src/components/admin/HeroSlidesEditor.tsx`
+- `src/components/PhotoImg.tsx`
 
-## What you'll need to provide
-
-1. External Supabase project's **URL** and **anon (publishable) key** → `VITE_STORAGE_SUPABASE_URL` / `VITE_STORAGE_SUPABASE_ANON_KEY`.
-2. Confirm the bucket name is `gallery` in the external project (or tell me the actual name).
-3. Confirm the external project has RLS policies on `storage.objects` allowing **admins to insert** and **public (or authenticated) to select** for that bucket — if not, I'll provide the SQL for you to run there.
-
-## Why this beats the alternatives
-
-| Approach | Cost | Latency | Complexity |
-|---|---|---|---|
-| **Browser-encode + multi-upload (this plan)** | $0 | Fast (signed-URL caching) | Medium upload work, simple render |
-| Enable Image Transformations add-on | $ monthly | Fast | Trivial code |
-| External CDN (Cloudflare Images, imgproxy) | $ per image | Fast | Extra infra |
-| Runtime browser-resize on read | $0 | Slow, re-does work every view | Bad UX |
-
-## Verification
-
-1. Admin uploads a photo → Network shows 4 PUTs to `/storage/v1/object/gallery/<id>/...`, DB row is v:2 JSON.
-2. Reload `/` → grid loads 1280w WebP (~80–150KB), lightbox loads 2400w.
-3. Legacy Unsplash/Drive URLs still render unchanged.
+No backend, schema, or storage policy changes.

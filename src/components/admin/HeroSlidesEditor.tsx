@@ -6,7 +6,7 @@ import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
-import { resolveImageUrl } from "@/lib/imageUrl";
+import { PhotoImg } from "@/components/PhotoImg";
 
 export const HeroSlidesEditor = () => {
   const { items, set, save, dirty, saving } = useHeroSlidesStore();

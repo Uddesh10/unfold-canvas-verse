@@ -1,5 +1,5 @@
-import { forwardRef, useEffect, useState, type ImgHTMLAttributes } from "react";
-import { parsePhoto, photoUrl, type Variant } from "@/lib/photoModel";
+import { forwardRef, useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
+import { parsePhoto, photoUrl, photoOriginalUrl, type Variant } from "@/lib/photoModel";
 import { resolveImageUrl } from "@/lib/imageUrl";
 import { isPendingToken, getPendingPreview } from "@/lib/pendingUploads";
 
@@ -10,22 +10,24 @@ interface Props extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> {
 }
 
 export const PhotoImg = forwardRef<HTMLImageElement, Props>(
-  ({ photo, variant, pictureClassName: _pictureClassName, loading = "lazy", decoding = "async", ...imgProps }, ref) => {
+  ({ photo, variant, pictureClassName: _pictureClassName, loading = "lazy", decoding = "async", onError, ...imgProps }, ref) => {
     const [resolved, setResolved] = useState<string>("");
+    const triedFallback = useRef(false);
 
     const pendingPreview = isPendingToken(photo) ? getPendingPreview(photo) ?? "" : null;
     const parsed = pendingPreview === null ? parsePhoto(photo) : null;
     const legacyUrl = parsed?.kind === "legacy" ? resolveImageUrl(parsed.url) : null;
-    const v2Path = parsed?.kind === "v2" ? parsed.photo.path : null;
+    const v2 = parsed?.kind === "v2" ? parsed.photo : null;
 
     useEffect(() => {
-      if (!v2Path) return;
+      if (!v2) return;
       let cancelled = false;
+      triedFallback.current = false;
       photoUrl(photo, variant)
         .then((url) => { if (!cancelled) setResolved(url); })
         .catch(() => { if (!cancelled) setResolved(""); });
       return () => { cancelled = true; };
-    }, [photo, variant, v2Path]);
+    }, [photo, variant, v2]);
 
     const src = pendingPreview ?? legacyUrl ?? resolved;
 
@@ -35,6 +37,14 @@ export const PhotoImg = forwardRef<HTMLImageElement, Props>(
         src={src}
         loading={loading}
         decoding={decoding}
+        onError={(e) => {
+          if (v2 && !triedFallback.current) {
+            triedFallback.current = true;
+            photoOriginalUrl(photo).then((url) => setResolved(url)).catch(() => {});
+            return;
+          }
+          onError?.(e);
+        }}
         {...imgProps}
       />
     );

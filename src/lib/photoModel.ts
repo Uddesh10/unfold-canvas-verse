@@ -1,19 +1,21 @@
 // Photo data model. Photos are stored as strings in DB fields.
-// - v:2 (current): original uploaded to the `gallery` bucket. Variants are
-//   resolved at render time via Supabase Storage signed transform URLs.
-// - plain URL string: legacy/external (e.g. Google Drive seed data).
+// - v:2 (current): variants pre-generated at upload time and stored as
+//   `{id}/{variant}.webp` in the external Storage bucket. Original kept as
+//   `{id}/original.{ext}` for download/fallback.
+// - plain URL string: legacy/external (seed data, Unsplash, Drive, etc.).
 
-import { supabase } from "@/integrations/supabase/client";
+import { storageSupabase, STORAGE_BUCKET } from "@/integrations/supabase/storageClient";
 
 export type Variant = "thumb" | "grid" | "full";
 
 export type PhotoV2 = {
   v: 2;
   id: string;
-  path: string;
-  ext: string;
+  ext: string; // original file extension (jpg/png/...), variants are always webp
   w: number;
   h: number;
+  // Legacy field — older rows may still carry `path`. Ignored at render time.
+  path?: string;
 };
 
 export type Photo = PhotoV2;
@@ -28,7 +30,7 @@ export function parsePhoto(input: string | undefined | null): ParsedPhoto {
   if (s.startsWith("{")) {
     try {
       const p = JSON.parse(s) as Photo;
-      if (p?.v === 2 && p.path) return { kind: "v2", photo: p };
+      if (p?.v === 2 && p.id) return { kind: "v2", photo: p };
     } catch {
       // fall through
     }
@@ -40,33 +42,37 @@ export function serializePhoto(p: Photo): string {
   return JSON.stringify(p);
 }
 
-const SPECS: Record<Variant, { width: number; quality: number }> = {
-  thumb: { width: 480, quality: 60 },
-  grid: { width: 1280, quality: 70 },
-  full: { width: 2400, quality: 78 },
-};
-
-const SIGNED_TTL = 60 * 60 * 24 * 7; // 7 days; URLs cached per session below
+const SIGNED_TTL = 60 * 60 * 24 * 7; // 7 days
 const urlCache = new Map<string, { url: string; expires: number }>();
 
-async function signTransform(path: string, variant: Variant): Promise<string> {
-  const key = `${path}|${variant}`;
+async function signPath(path: string): Promise<string> {
   const now = Date.now();
-  const hit = urlCache.get(key);
+  const hit = urlCache.get(path);
   if (hit && hit.expires > now + 60_000) return hit.url;
-  const spec = SPECS[variant];
-  const { data, error } = await supabase.storage
-    .from("gallery")
-    .createSignedUrl(path, SIGNED_TTL, {
-      transform: { width: spec.width, resize: "contain", quality: spec.quality },
-    });
+  const { data, error } = await storageSupabase.storage
+    .from(STORAGE_BUCKET)
+    .createSignedUrl(path, SIGNED_TTL);
   if (error || !data?.signedUrl) throw error ?? new Error("Failed to sign URL");
-  urlCache.set(key, { url: data.signedUrl, expires: now + (SIGNED_TTL - 60) * 1000 });
+  urlCache.set(path, { url: data.signedUrl, expires: now + (SIGNED_TTL - 60) * 1000 });
   return data.signedUrl;
+}
+
+export function variantPath(photo: PhotoV2, variant: Variant): string {
+  return `${photo.id}/${variant}.webp`;
+}
+
+export function originalPath(photo: PhotoV2): string {
+  return `${photo.id}/original.${photo.ext === "webp" ? "jpg" : photo.ext}`;
 }
 
 export async function photoUrl(input: string, variant: Variant): Promise<string> {
   const parsed = parsePhoto(input);
   if (parsed.kind === "legacy") return parsed.url;
-  return signTransform(parsed.photo.path, variant);
+  return signPath(variantPath(parsed.photo, variant));
+}
+
+export async function photoOriginalUrl(input: string): Promise<string> {
+  const parsed = parsePhoto(input);
+  if (parsed.kind === "legacy") return parsed.url;
+  return signPath(originalPath(parsed.photo));
 }

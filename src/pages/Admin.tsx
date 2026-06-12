@@ -9,7 +9,9 @@ import { FaqEditor } from "@/components/admin/FaqEditor";
 import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
 import { HeroSlidesEditor } from "@/components/admin/HeroSlidesEditor";
 import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
+import { MigrateGalleryPanel } from "@/components/admin/MigrateGalleryPanel";
 import { Seo } from "@/components/Seo";
+
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -57,6 +59,7 @@ const Admin = () => {
             <TabsTrigger value="photographer">Photographer</TabsTrigger>
             <TabsTrigger value="faq">FAQ</TabsTrigger>
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
+            <TabsTrigger value="tools">Tools</TabsTrigger>
           </TabsList>
           <TabsContent value="hero" className="mt-6"><HeroSlidesEditor /></TabsContent>
           <TabsContent value="weddings" className="mt-6"><GalleryEditor vertical="weddings" /></TabsContent>
@@ -66,6 +69,8 @@ const Admin = () => {
           <TabsContent value="photographer" className="mt-6"><PhotographerEditor /></TabsContent>
           <TabsContent value="faq" className="mt-6"><FaqEditor /></TabsContent>
           <TabsContent value="submissions" className="mt-6"><SubmissionsViewer /></TabsContent>
+          <TabsContent value="tools" className="mt-6"><MigrateGalleryPanel /></TabsContent>
+
         </Tabs>
       </main>
     </div>

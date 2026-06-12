@@ -1,1 +1,10 @@
 project_id = "cdnhkojnnmunfajhxcir"
+
+[functions.cdn-config]
+verify_jwt = false
+
+[functions.presign-upload]
+verify_jwt = false
+
+[functions.migrate-gallery]
+verify_jwt = false

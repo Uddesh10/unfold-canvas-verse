@@ -1,38 +1,21 @@
-// Browser-side multi-variant encoding + upload to the `gallery` Storage bucket.
-// Produces thumb/grid/full WebP variants plus an untouched original fallback,
-// uploaded as `{id}/{variant}.{ext}`. Returns a v:2 Photo JSON string.
+// Browser-side upload pipeline. Requests a presigned S3 PUT URL from the
+// `presign-upload` edge function, then uploads the original directly to S3.
+// AWS Lambda generates thumb/grid/full WebP variants from the S3 event.
 
-import imageCompression from "browser-image-compression";
 import { supabase } from "@/integrations/supabase/client";
-import { serializePhoto, type Variant } from "@/lib/photoModel";
+import { serializePhoto } from "@/lib/photoModel";
 
-const STORAGE_BUCKET = "gallery";
 const MAX_BYTES = 25 * 1024 * 1024;
 
-type VariantSpec = { name: Variant; maxWidth: number; quality: number };
-
-const VARIANT_SPECS: VariantSpec[] = [
-  { name: "thumb", maxWidth: 480, quality: 0.6 },
-  { name: "grid", maxWidth: 1280, quality: 0.7 },
-  { name: "full", maxWidth: 2400, quality: 0.78 },
-];
-
-function extFromMime(mime: string): string {
-  if (mime.includes("png")) return "png";
-  if (mime.includes("webp")) return "webp";
-  if (mime.includes("avif")) return "avif";
-  if (mime.includes("gif")) return "gif";
+function extFromFile(file: File): "jpg" | "jpeg" | "png" | "webp" {
+  const t = file.type.toLowerCase();
+  if (t.includes("png")) return "png";
+  if (t.includes("webp")) return "webp";
+  if (t.includes("jpeg") || t.includes("jpg")) return "jpg";
+  const n = file.name.toLowerCase();
+  if (n.endsWith(".png")) return "png";
+  if (n.endsWith(".webp")) return "webp";
   return "jpg";
-}
-
-async function encodeVariant(file: File, spec: VariantSpec): Promise<Blob> {
-  return imageCompression(file, {
-    maxWidthOrHeight: spec.maxWidth,
-    initialQuality: spec.quality,
-    fileType: "image/webp",
-    useWebWorker: true,
-    maxSizeMB: 5,
-  });
 }
 
 async function getDimensions(file: File): Promise<{ w: number; h: number }> {
@@ -58,35 +41,21 @@ export async function uploadViaEdge(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Not an image");
   if (file.size > MAX_BYTES) throw new Error("File too large (max 25MB)");
 
-  const id = crypto.randomUUID();
-  const origExt = extFromMime(file.type);
+  const ext = extFromFile(file);
+  const contentType = file.type || (ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg");
 
-  const [thumb, grid, full, dims] = await Promise.all([
-    encodeVariant(file, VARIANT_SPECS[0]),
-    encodeVariant(file, VARIANT_SPECS[1]),
-    encodeVariant(file, VARIANT_SPECS[2]),
+  const { data, error } = await supabase.functions.invoke("presign-upload", {
+    body: { ext, contentType },
+  });
+  if (error) throw error;
+  const { id, url } = data as { id: string; url: string };
+  if (!id || !url) throw new Error("presign-upload returned no url");
+
+  const [dims, putRes] = await Promise.all([
     getDimensions(file),
+    fetch(url, { method: "PUT", headers: { "Content-Type": contentType }, body: file }),
   ]);
+  if (!putRes.ok) throw new Error(`S3 upload failed: ${putRes.status}`);
 
-  const uploads: Array<{ path: string; blob: Blob; type: string }> = [
-    { path: `${id}/thumb.webp`, blob: thumb, type: "image/webp" },
-    { path: `${id}/grid.webp`, blob: grid, type: "image/webp" },
-    { path: `${id}/full.webp`, blob: full, type: "image/webp" },
-    { path: `${id}/original.${origExt}`, blob: file, type: file.type },
-  ];
-
-  const results = await Promise.all(
-    uploads.map(({ path, blob, type }) =>
-      supabase.storage.from(STORAGE_BUCKET).upload(path, blob, {
-        contentType: type,
-        upsert: false,
-        cacheControl: "31536000",
-      })
-    )
-  );
-
-  const failed = results.find((r) => r.error);
-  if (failed?.error) throw failed.error;
-
-  return serializePhoto({ v: 2, id, ext: "webp", w: dims.w, h: dims.h });
+  return serializePhoto({ v: 3, id, ext, w: dims.w, h: dims.h });
 }

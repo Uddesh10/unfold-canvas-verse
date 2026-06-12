@@ -1,28 +1,23 @@
 // Photo data model. Photos are stored as strings in DB fields.
-// - v:2 (current): variants pre-generated at upload time and stored as
-//   `{id}/{variant}.webp` in the external Storage bucket. Original kept as
-//   `{id}/original.{ext}` for download/fallback.
+// - v:3 (current): hosted on S3, served via CloudFront CDN. Variants
+//   `{id}/{variant}.webp` produced by AWS Lambda from `{id}/original.{ext}`.
+// - v:2 (legacy): variants previously stored in Lovable Cloud Storage.
 // - plain URL string: legacy/external (seed data, Unsplash, Drive, etc.).
+//
+// During migration, v:2 photos are re-uploaded to S3 and become readable
+// via CloudFront at the same {id}/ path, so we read both v:2 and v:3 from
+// CloudFront once the migration job has run.
 
 import { supabase } from "@/integrations/supabase/client";
 
-const STORAGE_BUCKET = "gallery";
-
 export type Variant = "thumb" | "grid" | "full";
 
-export type PhotoV2 = {
-  v: 2;
-  id: string;
-  ext: string; // original file extension (jpg/png/...), variants are always webp
-  w: number;
-  h: number;
-  // Legacy field — older rows may still carry `path`. Ignored at render time.
-  path?: string;
-};
-
-export type Photo = PhotoV2;
+export type PhotoV2 = { v: 2; id: string; ext: string; w: number; h: number; path?: string };
+export type PhotoV3 = { v: 3; id: string; ext: string; w: number; h: number };
+export type Photo = PhotoV2 | PhotoV3;
 
 export type ParsedPhoto =
+  | { kind: "v3"; photo: PhotoV3 }
   | { kind: "v2"; photo: PhotoV2 }
   | { kind: "legacy"; url: string };
 
@@ -32,6 +27,7 @@ export function parsePhoto(input: string | undefined | null): ParsedPhoto {
   if (s.startsWith("{")) {
     try {
       const p = JSON.parse(s) as Photo;
+      if (p?.v === 3 && p.id) return { kind: "v3", photo: p };
       if (p?.v === 2 && p.id) return { kind: "v2", photo: p };
     } catch {
       // fall through
@@ -44,37 +40,53 @@ export function serializePhoto(p: Photo): string {
   return JSON.stringify(p);
 }
 
-const SIGNED_TTL = 60 * 60 * 24 * 7; // 7 days
-const urlCache = new Map<string, { url: string; expires: number }>();
+// ---------- CDN base (CloudFront) ----------
+let cdnBase: string | null = null;
+let cdnBasePromise: Promise<string> | null = null;
 
-async function signPath(path: string): Promise<string> {
-  const now = Date.now();
-  const hit = urlCache.get(path);
-  if (hit && hit.expires > now + 60_000) return hit.url;
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .createSignedUrl(path, SIGNED_TTL);
-  if (error || !data?.signedUrl) throw error ?? new Error("Failed to sign URL");
-  urlCache.set(path, { url: data.signedUrl, expires: now + (SIGNED_TTL - 60) * 1000 });
-  return data.signedUrl;
+async function getCdnBase(): Promise<string> {
+  if (cdnBase !== null) return cdnBase;
+  if (!cdnBasePromise) {
+    cdnBasePromise = (async () => {
+      const { data, error } = await supabase.functions.invoke("cdn-config");
+      if (error) throw error;
+      const base = (data?.base ?? "").replace(/\/$/, "");
+      cdnBase = base;
+      return base;
+    })();
+  }
+  return cdnBasePromise;
 }
 
-export function variantPath(photo: PhotoV2, variant: Variant): string {
-  return `${photo.id}/${variant}.webp`;
+export function cdnUrl(id: string, variant: Variant): string {
+  if (!cdnBase) return "";
+  return `${cdnBase}/gallery/${id}/${variant}.webp`;
 }
 
-export function originalPath(photo: PhotoV2): string {
-  return `${photo.id}/original.${photo.ext === "webp" ? "jpg" : photo.ext}`;
-}
-
+// ---------- URL resolution ----------
 export async function photoUrl(input: string, variant: Variant): Promise<string> {
   const parsed = parsePhoto(input);
   if (parsed.kind === "legacy") return parsed.url;
-  return signPath(variantPath(parsed.photo, variant));
+  const base = await getCdnBase();
+  if (!base) return "";
+  return `${base}/gallery/${parsed.photo.id}/${variant}.webp`;
 }
 
-export async function photoOriginalUrl(input: string): Promise<string> {
+// Synchronous resolver — returns "" until CDN base has been fetched once.
+// Callers should also call `ensureCdnBase()` (or `photoUrl`) to warm the cache.
+export function photoUrlSync(input: string, variant: Variant): string {
   const parsed = parsePhoto(input);
   if (parsed.kind === "legacy") return parsed.url;
-  return signPath(originalPath(parsed.photo));
+  if (!cdnBase) return "";
+  return `${cdnBase}/gallery/${parsed.photo.id}/${variant}.webp`;
+}
+
+export async function ensureCdnBase(): Promise<string> {
+  return getCdnBase();
+}
+
+// Kept for future "download original" UI — Lambda always reads from S3,
+// and originals are not exposed via CDN by default.
+export function originalKey(photo: PhotoV2 | PhotoV3): string {
+  return `gallery/${photo.id}/original.${photo.ext === "webp" ? "webp" : photo.ext}`;
 }

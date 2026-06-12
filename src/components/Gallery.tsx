@@ -22,10 +22,20 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
     : [item.src];
   const [i, setI] = useState(0);
   const [hover, setHover] = useState(false);
+  // Only mount frames the user has actually reached. The cover (index 0) is
+  // always mounted so it's available as the resting state; additional frames
+  // get mounted lazily once the user hovers and the slideshow advances.
+  const [maxMounted, setMaxMounted] = useState(0);
 
   useEffect(() => {
     if (!hover || slideshow.length < 2) return;
-    const t = setInterval(() => setI((p) => (p + 1) % slideshow.length), 1500);
+    const t = setInterval(() => {
+      setI((p) => {
+        const next = (p + 1) % slideshow.length;
+        setMaxMounted((m) => Math.max(m, next));
+        return next;
+      });
+    }, 1500);
     return () => clearInterval(t);
   }, [hover, slideshow.length]);
 
@@ -39,17 +49,20 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {slideshow.map((p, idx) => (
-        <PhotoImg
-          key={idx}
-          photo={p}
-          variant="grid"
-          alt={item.alt}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-            idx === i ? "opacity-100" : "opacity-0"
-          }`}
-        />
-      ))}
+      {slideshow.map((p, idx) => {
+        if (idx > maxMounted) return null;
+        return (
+          <PhotoImg
+            key={idx}
+            photo={p}
+            variant="grid"
+            alt={item.alt}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+              idx === i ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        );
+      })}
       {/* layout spacer so masonry-auto can measure height */}
       <PhotoImg
         photo={slideshow[0]}
@@ -74,6 +87,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
     </div>
   );
 };
+
 
 export const Gallery = ({ items, variant, className }: Props) => {
   const lb = useLightbox();

@@ -36,7 +36,10 @@ export const HeroScene = () => {
             alt={slides[i].caption}
             className="absolute inset-0 h-full w-full object-cover"
             draggable={false}
+            eager
+            loading="eager"
           />
+
         </motion.div>
       </AnimatePresence>
 

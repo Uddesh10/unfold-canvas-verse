@@ -9,7 +9,7 @@ import { FaqEditor } from "@/components/admin/FaqEditor";
 import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
 import { HeroSlidesEditor } from "@/components/admin/HeroSlidesEditor";
 import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
-import { MigrateGalleryPanel } from "@/components/admin/MigrateGalleryPanel";
+
 import { Seo } from "@/components/Seo";
 
 

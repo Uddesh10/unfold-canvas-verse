@@ -39,7 +39,7 @@ async function getDimensions(file: File): Promise<{ w: number; h: number }> {
 
 export async function uploadViaEdge(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Not an image");
-  if (file.size > MAX_BYTES) throw new Error("File too large (max 25MB)");
+  if (file.size > MAX_BYTES) throw new Error("File too large (max 50MB)");
 
   const ext = extFromFile(file);
   const contentType = file.type || (ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg");

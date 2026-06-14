@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Lightbox, useLightbox } from "@/components/Lightbox";
 import { AlbumDialog } from "@/components/AlbumDialog";
@@ -92,6 +92,29 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
 export const Gallery = ({ items, variant, className }: Props) => {
   const lb = useLightbox();
   const [album, setAlbum] = useState<GalleryItem | null>(null);
+  const PAGE = 24;
+  const [visible, setVisible] = useState(PAGE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setVisible(PAGE);
+  }, [items]);
+
+  useEffect(() => {
+    if (variant !== "masonry") return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible((v) => Math.min(v + PAGE, items.length));
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [variant, items.length, visible]);
 
   const onItemClick = (it: GalleryItem, i: number) => {
     if (it.client || (it.photos && it.photos.length > 0) || (it.videos && it.videos.length > 0) || it.feedback) {
@@ -147,21 +170,30 @@ export const Gallery = ({ items, variant, className }: Props) => {
     );
   }
 
-  // masonry
+  // masonry → row-wise grid (2 cols mobile, 3 cols desktop), with infinite scroll
+  const shown = items.slice(0, visible);
   return (
     <>
-      <div className={`columns-1 sm:columns-2 lg:columns-3 gap-4 ${className ?? ""}`}>
-        {items.map((it, i) => (
-          <Reveal key={i} delay={(i % 5) * 0.06} className="mb-4 break-inside-avoid">
+      <div className={`grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 ${className ?? ""}`}>
+        {shown.map((it, i) => (
+          <Reveal key={i} delay={(i % 5) * 0.06}>
             <button
               onClick={() => onItemClick(it, i)}
-              className="group block w-full overflow-hidden rounded-2xl relative bg-muted"
+              className="group block w-full aspect-[4/5] overflow-hidden rounded-2xl relative bg-muted"
             >
               <SlideshowImage item={it} />
             </button>
           </Reveal>
         ))}
       </div>
+      {visible < items.length && (
+        <div
+          ref={sentinelRef}
+          className="h-20 flex items-center justify-center text-xs uppercase tracking-[0.3em] text-muted-foreground mt-6"
+        >
+          Loading more…
+        </div>
+      )}
       <Lightbox items={items} index={lb.index} onClose={lb.close} onIndexChange={lb.set} />
       <AlbumDialog item={album} onClose={() => setAlbum(null)} />
     </>

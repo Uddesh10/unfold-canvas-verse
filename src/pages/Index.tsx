@@ -52,7 +52,7 @@ const Index = () => {
   return (
     <div className="relative">
       <Seo
-        title="Unfold Studios — Cinematic photography in three perspectives"
+        title="Unfold Studios"
         description="A photography house of three studios — Weddings, Architecture and Street — built on quiet observation and luxurious craft."
         path="/"
       />

@@ -162,7 +162,7 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                     {Math.min(visible, photoUrls.length)} / {photoUrls.length}
                   </span>
                 </div>
-                <div className="columns-1 md:columns-2 lg:columns-3 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                   {shown.map((p, i) => (
                     <motion.div
                       key={i}
@@ -170,13 +170,13 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: (i % PAGE) * 0.03, duration: 0.4 }}
                       onClick={() => lightbox.open(i)}
-                      className="mb-3 break-inside-avoid cursor-zoom-in hover:opacity-90 transition rounded-2xl overflow-hidden"
+                      className="aspect-[4/5] cursor-zoom-in hover:opacity-90 transition rounded-2xl overflow-hidden bg-muted"
                     >
                       <PhotoImg
                         photo={p}
                         variant="grid"
                         alt={`${item.alt} — ${i + 1}`}
-                        className="block w-full h-auto"
+                        className="block w-full h-full object-cover"
                       />
                     </motion.div>
                   ))}

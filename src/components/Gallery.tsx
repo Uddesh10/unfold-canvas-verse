@@ -179,7 +179,7 @@ export const Gallery = ({ items, variant, className }: Props) => {
           <Reveal key={i} delay={(i % 5) * 0.06}>
             <button
               onClick={() => onItemClick(it, i)}
-              className="group block w-full aspect-[4/5] overflow-hidden rounded-2xl relative bg-muted"
+              className="group block w-full aspect-[16/10] overflow-hidden rounded-2xl relative bg-muted"
             >
               <SlideshowImage item={it} />
             </button>

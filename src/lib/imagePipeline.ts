@@ -5,7 +5,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { serializePhoto } from "@/lib/photoModel";
 
-const MAX_BYTES = 25 * 1024 * 1024;
+const MAX_BYTES = 50 * 1024 * 1024;
 
 function extFromFile(file: File): "jpg" | "jpeg" | "png" | "webp" {
   const t = file.type.toLowerCase();
@@ -39,7 +39,7 @@ async function getDimensions(file: File): Promise<{ w: number; h: number }> {
 
 export async function uploadViaEdge(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Not an image");
-  if (file.size > MAX_BYTES) throw new Error("File too large (max 25MB)");
+  if (file.size > MAX_BYTES) throw new Error("File too large (max 50MB)");
 
   const ext = extFromFile(file);
   const contentType = file.type || (ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg");

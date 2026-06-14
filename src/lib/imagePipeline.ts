@@ -5,7 +5,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { serializePhoto } from "@/lib/photoModel";
 
-const MAX_BYTES = 25 * 1024 * 1024;
+const MAX_BYTES = 50 * 1024 * 1024;
 
 function extFromFile(file: File): "jpg" | "jpeg" | "png" | "webp" {
   const t = file.type.toLowerCase();

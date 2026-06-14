@@ -92,6 +92,29 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
 export const Gallery = ({ items, variant, className }: Props) => {
   const lb = useLightbox();
   const [album, setAlbum] = useState<GalleryItem | null>(null);
+  const PAGE = 24;
+  const [visible, setVisible] = useState(PAGE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setVisible(PAGE);
+  }, [items]);
+
+  useEffect(() => {
+    if (variant !== "masonry") return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible((v) => Math.min(v + PAGE, items.length));
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [variant, items.length, visible]);
 
   const onItemClick = (it: GalleryItem, i: number) => {
     if (it.client || (it.photos && it.photos.length > 0) || (it.videos && it.videos.length > 0) || it.feedback) {

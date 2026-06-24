@@ -23,6 +23,7 @@ export function useGalleryStore(vertical: Vertical) {
     setItems(
       (data ?? []).map((r) => {
         const slideshow = (r as unknown as { slideshow_photos?: string[] }).slideshow_photos ?? [];
+        const hidden = (r as unknown as { hidden_photos?: string[] }).hidden_photos ?? [];
         return {
           src: r.src,
           alt: r.alt ?? "",
@@ -30,6 +31,7 @@ export function useGalleryStore(vertical: Vertical) {
           client: r.client ?? undefined,
           photos: (r.photos as string[] | null) ?? [],
           slideshowPhotos: slideshow as string[],
+          hiddenPhotos: hidden as string[],
           videos: (r.videos as string[] | null) ?? [],
           feedback: r.feedback ?? undefined,
         };
@@ -64,6 +66,7 @@ export function useGalleryStore(vertical: Vertical) {
           client: it.client ?? null,
           photos: it.photos ?? [],
           slideshow_photos: it.slideshowPhotos ?? [],
+          hidden_photos: it.hiddenPhotos ?? [],
           videos: it.videos ?? [],
           feedback: it.feedback ?? null,
         }));

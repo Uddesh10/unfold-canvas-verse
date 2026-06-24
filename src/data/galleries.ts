@@ -5,6 +5,7 @@ export type GalleryItem = {
   client?: string;
   photos?: string[];
   slideshowPhotos?: string[];
+  hiddenPhotos?: string[];
   videos?: string[];
   feedback?: string;
   w?: number;

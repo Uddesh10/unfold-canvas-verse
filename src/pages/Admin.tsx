@@ -9,6 +9,7 @@ import { FaqEditor } from "@/components/admin/FaqEditor";
 import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
 import { HeroSlidesEditor } from "@/components/admin/HeroSlidesEditor";
 import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
+import { FavouriteShotsEditor } from "@/components/admin/FavouriteShotsEditor";
 
 import { Seo } from "@/components/Seo";
 
@@ -57,6 +58,7 @@ const Admin = () => {
             <TabsTrigger value="spaces">Spaces</TabsTrigger>
             <TabsTrigger value="stories">Stories</TabsTrigger>
             <TabsTrigger value="photographer">Photographer</TabsTrigger>
+            <TabsTrigger value="favourites">Favourite Shots</TabsTrigger>
             <TabsTrigger value="faq">FAQ</TabsTrigger>
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
           </TabsList>
@@ -66,6 +68,7 @@ const Admin = () => {
           <TabsContent value="spaces" className="mt-6"><GalleryEditor vertical="spaces" /></TabsContent>
           <TabsContent value="stories" className="mt-6"><GalleryEditor vertical="stories" /></TabsContent>
           <TabsContent value="photographer" className="mt-6"><PhotographerEditor /></TabsContent>
+          <TabsContent value="favourites" className="mt-6"><FavouriteShotsEditor /></TabsContent>
           <TabsContent value="faq" className="mt-6"><FaqEditor /></TabsContent>
           <TabsContent value="submissions" className="mt-6"><SubmissionsViewer /></TabsContent>
 

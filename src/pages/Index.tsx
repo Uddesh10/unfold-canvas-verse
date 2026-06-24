@@ -9,6 +9,7 @@ import { Process } from "@/components/sections/Process";
 import { Faq } from "@/components/sections/Faq";
 import { Booking } from "@/components/sections/Booking";
 import { Photographer } from "@/components/sections/Photographer";
+import { FavouriteShots } from "@/components/sections/FavouriteShots";
 import { Link, useLocation } from "react-router-dom";
 import { verticals } from "@/data/themes";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ const Index = () => {
         <Booking />
         <Faq />
         <Photographer />
+        <FavouriteShots />
       </main>
       <Footer />
     </div>

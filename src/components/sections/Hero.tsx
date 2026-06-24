@@ -3,7 +3,7 @@ import { HeroScene } from "@/three/HeroScene";
 
 export const Hero = () => {
   return (
-    <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden hero-bg">
+    <section className="relative h-[100svh] min-h-[560px] w-full overflow-hidden hero-bg">
       <HeroScene />
 
       {/* Brand */}
@@ -12,7 +12,8 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="font-display text-[14vw] md:text-[9vw] leading-[0.9] tracking-tight"
+          className="font-display leading-[0.95] tracking-tight"
+          style={{ fontSize: "clamp(2.75rem, 12vw, 9rem)" }}
         >
           <span className="text-gradient">Unfold</span>{" "}
           <span className="font-light italic">Studios</span>
@@ -21,9 +22,10 @@ export const Hero = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 1.2 }}
-          className="mt-6 max-w-md text-sm md:text-base text-muted-foreground tracking-wide"
+          className="mt-6 md:mt-8 max-w-2xl text-base md:text-2xl text-muted-foreground/90 tracking-wide font-light"
         >
-          storytelling through three perspectives
+          storytelling through{" "}
+          <span className="italic text-foreground/90">three perspectives</span>
         </motion.p>
       </div>
     </section>

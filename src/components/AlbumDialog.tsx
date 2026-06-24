@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Calendar } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { GalleryItem } from "@/data/galleries";
@@ -21,7 +21,12 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const photoUrls = useMemo(
-    () => (item ? (item.photos && item.photos.length > 0 ? item.photos : [item.src]) : []),
+    () => {
+      if (!item) return [];
+      const hidden = item.hiddenPhotos ?? [];
+      const all = item.photos && item.photos.length > 0 ? item.photos : [item.src];
+      return all.filter((p) => !hidden.includes(p));
+    },
     [item],
   );
   const lightboxItems: GalleryItem[] = useMemo(
@@ -113,12 +118,18 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
             >
               {item.client && (
                 <div className="text-xs uppercase tracking-[0.4em] text-primary mb-3">
-                  {item.caption ?? "Album"}
+                  Album
                 </div>
               )}
-              <h2 className="font-display text-4xl md:text-6xl italic text-gradient mb-10">
+              <h2 className="font-display text-4xl md:text-6xl italic text-gradient mb-3">
                 {item.client ?? item.alt}
               </h2>
+              {item.caption && (
+                <div className="inline-flex items-center gap-2 text-xs md:text-sm uppercase tracking-[0.3em] text-muted-foreground mb-10">
+                  <Calendar className="h-4 w-4" />
+                  {item.caption}
+                </div>
+              )}
 
               {item.feedback && (
                 <figure className="mb-10 glass rounded-3xl p-8 md:p-10">

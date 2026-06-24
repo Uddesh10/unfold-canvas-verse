@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Mail, Instagram, MapPin, Palette } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { usePhotographerStore } from "@/hooks/usePhotographerStore";
-import { resolveImageUrl } from "@/lib/imageUrl";
+import { PhotoImg } from "@/components/PhotoImg";
 
 export const Photographer = () => {
   const { value: p } = usePhotographerStore();
@@ -11,16 +11,22 @@ export const Photographer = () => {
       <div className="container mx-auto px-6 grid md:grid-cols-12 gap-10 items-center">
         <Reveal className="md:col-span-5">
           <div className="relative aspect-[4/5] overflow-hidden rounded-3xl glass">
-            <motion.img
-              src={resolveImageUrl(p.portrait)}
-              alt={p.name}
-              loading="lazy"
+            <motion.div
               initial={{ scale: 1.08 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 1.4 }}
               viewport={{ once: true }}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
+              className="absolute inset-0"
+            >
+              <PhotoImg
+                photo={p.portrait}
+                variant="full"
+                alt={p.name}
+                eager
+                loading="eager"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </motion.div>
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
             <div className="absolute -inset-1 -z-10 rounded-3xl opacity-60 blur-2xl"
               style={{ background: "var(--gradient-text)" }} />

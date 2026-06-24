@@ -59,42 +59,14 @@ export const Showcase = () => {
           </div>
         </Reveal>
 
-        <div className="grid md:grid-cols-12 gap-8 items-center">
-          {/* Side: index + meta */}
-          <div className="md:col-span-3 order-2 md:order-1">
-            <div className="font-display text-[22vw] md:text-[10vw] leading-none text-gradient">
-              0{i + 1}
+        <div className="grid md:grid-cols-12 gap-6 md:gap-8 items-center">
+          {/* Side: index only */}
+          <div className="md:col-span-3 order-2 md:order-1 text-center md:text-left">
+            <div className="font-display text-[18vw] md:text-[10vw] leading-none text-gradient">
+              0{safeI + 1}
             </div>
             <div className="mt-2 text-xs uppercase tracking-[0.4em] text-muted-foreground">
               of 0{verticals.length}
-            </div>
-            <div className="mt-6 h-px w-full bg-border relative overflow-hidden">
-              <motion.div
-                key={i}
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                transition={{ duration: CYCLE_MS / 1000, ease: "linear" }}
-                className="absolute top-0 left-0 h-full"
-                style={{ background: v.color }}
-              />
-            </div>
-            <div className="mt-8 hidden md:flex flex-col gap-2">
-              {verticals.map((vv, idx) => (
-                <button
-                  key={vv.key}
-                  onClick={() => setI(idx)}
-                  data-cursor-hover
-                  className={`group flex items-center gap-3 text-left text-xs uppercase tracking-[0.3em] py-1 transition-opacity ${
-                    idx === i ? "opacity-100" : "opacity-40 hover:opacity-80"
-                  }`}
-                >
-                  <span
-                    className="h-1.5 w-6 rounded-full transition-all"
-                    style={{ background: idx === i ? vv.color : "hsl(var(--muted-foreground) / 0.4)" }}
-                  />
-                  {vv.label}
-                </button>
-              ))}
             </div>
           </div>
 
@@ -141,22 +113,22 @@ export const Showcase = () => {
                   <ArrowUpRight className="h-4 w-4" />
                 </div>
 
-                {/* Prev / Next arrows */}
+                {/* Prev / Next arrows — always visible */}
                 <button
                   onClick={(e) => { e.stopPropagation(); prev(); }}
                   data-cursor-hover
                   aria-label="Previous studio"
-                  className="absolute left-4 top-1/2 -translate-y-1/2 glass-strong rounded-full p-3 hover:scale-110 transition-transform"
+                  className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 glass-strong rounded-full p-2.5 md:p-3.5 hover:scale-110 transition-transform z-10"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); next(); }}
                   data-cursor-hover
                   aria-label="Next studio"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 glass-strong rounded-full p-3 hover:scale-110 transition-transform"
+                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 glass-strong rounded-full p-2.5 md:p-3.5 hover:scale-110 transition-transform z-10"
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
                 </button>
 
                 <div className="absolute bottom-0 inset-x-0 p-7 md:p-10">
@@ -182,14 +154,14 @@ export const Showcase = () => {
               </motion.div>
             </div>
 
-            {/* mobile dots */}
-            <div className="mt-5 flex md:hidden justify-center gap-2">
+            {/* dots — both mobile + desktop */}
+            <div className="mt-5 flex justify-center gap-2">
               {verticals.map((vv, idx) => (
                 <button
                   key={vv.key}
                   onClick={() => setI(idx)}
                   className="h-1.5 w-8 rounded-full transition-all"
-                  style={{ background: idx === i ? vv.color : "hsl(var(--muted-foreground) / 0.3)" }}
+                  style={{ background: idx === safeI ? vv.color : "hsl(var(--muted-foreground) / 0.3)" }}
                   aria-label={vv.label}
                 />
               ))}

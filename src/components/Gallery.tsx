@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
+import { Calendar } from "lucide-react";
 import { Lightbox, useLightbox } from "@/components/Lightbox";
 import { AlbumDialog } from "@/components/AlbumDialog";
 import { PhotoImg } from "@/components/PhotoImg";
 import type { GalleryItem } from "@/data/galleries";
 import { Reveal } from "@/components/Reveal";
-
 
 interface Props {
   items: GalleryItem[];
@@ -14,17 +14,26 @@ interface Props {
   caption?: ReactNode;
 }
 
-// Mini slideshow on hover — cycles through slideshowPhotos[] when hovered.
-// If no slideshow photos are flagged, just shows the cover image (no cycle).
+// Filter out hidden photos from item.photos / slideshow / cover.
+const visibleItem = (it: GalleryItem): GalleryItem => {
+  const hidden = it.hiddenPhotos ?? [];
+  if (hidden.length === 0) return it;
+  const photos = (it.photos ?? []).filter((p) => !hidden.includes(p));
+  const slideshow = (it.slideshowPhotos ?? []).filter((p) => !hidden.includes(p));
+  let src = it.src;
+  if (hidden.includes(src)) {
+    src = photos[0] ?? slideshow[0] ?? src;
+  }
+  return { ...it, src, photos, slideshowPhotos: slideshow };
+};
+
+// Mini slideshow on hover.
 const SlideshowImage = ({ item }: { item: GalleryItem }) => {
   const slideshow = item.slideshowPhotos && item.slideshowPhotos.length > 0
     ? item.slideshowPhotos
     : [item.src];
   const [i, setI] = useState(0);
   const [hover, setHover] = useState(false);
-  // Only mount frames the user has actually reached. The cover (index 0) is
-  // always mounted so it's available as the resting state; additional frames
-  // get mounted lazily once the user hovers and the slideshow advances.
   const [maxMounted, setMaxMounted] = useState(0);
 
   useEffect(() => {
@@ -63,7 +72,6 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
           />
         );
       })}
-      {/* layout spacer so masonry-auto can measure height */}
       <PhotoImg
         photo={slideshow[0]}
         variant="grid"
@@ -72,24 +80,28 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
         className="invisible w-full h-auto"
       />
 
-      {/* hover overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-      {item.client && (
-        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="font-display text-2xl italic text-white">{item.client}</div>
-        </div>
-      )}
-      {!item.client && item.caption && (
-        <span className="absolute bottom-3 left-3 text-[10px] uppercase tracking-[0.25em] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+
+      {/* Always-visible event date chip (bottom-left) */}
+      {item.caption && (
+        <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-sm text-[10px] uppercase tracking-[0.2em] text-white">
+          <Calendar className="h-3 w-3" />
           {item.caption}
         </span>
+      )}
+
+      {item.client && (
+        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="font-display text-2xl italic text-white text-right">{item.client}</div>
+        </div>
       )}
     </div>
   );
 };
 
 
-export const Gallery = ({ items, variant, className }: Props) => {
+export const Gallery = ({ items: rawItems, variant, className }: Props) => {
+  const items = rawItems.map(visibleItem).filter((it) => !!it.src);
   const lb = useLightbox();
   const [album, setAlbum] = useState<GalleryItem | null>(null);
   const PAGE = 24;
@@ -98,7 +110,7 @@ export const Gallery = ({ items, variant, className }: Props) => {
 
   useEffect(() => {
     setVisible(PAGE);
-  }, [items]);
+  }, [rawItems]);
 
   useEffect(() => {
     if (variant !== "masonry") return;
@@ -170,7 +182,6 @@ export const Gallery = ({ items, variant, className }: Props) => {
     );
   }
 
-  // masonry → row-wise grid (2 cols mobile, 3 cols desktop), with infinite scroll
   const shown = items.slice(0, visible);
   return (
     <>

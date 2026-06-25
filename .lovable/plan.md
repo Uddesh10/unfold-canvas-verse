@@ -1,74 +1,52 @@
-# Plan: site polish + admin upgrades
+# Round of fixes
 
-## 1. Homepage caption + responsive Hero
+## 1. Hero slideshow — arrows + remove progress bar (`src/three/HeroScene.tsx`)
+- Remove the bottom-left progress-dots row entirely.
+- Remove the bottom-right caption/label block (it's part of the same "bars" pattern) — keep the slideshow visually clean.
+- Add left/right chevron buttons (lucide `ChevronLeft`/`ChevronRight`) centered vertically at the screen edges, styled `glass rounded-full p-3`, with `aria-label` and hover glow. Click → `setI((i) => (i ± 1 + n) % n)`.
+- Pause autoplay for ~6s after a manual click so it doesn't immediately advance.
+- Hide arrows when only 1 slide is configured.
 
-**File:** `src/components/sections/Hero.tsx`
+## 2. Albums not loading on Weddings / Spaces / Stories
+Symptom: requests return 200 but grids stay empty. Root cause in `src/components/Gallery.tsx`:
+```ts
+const items = rawItems.map(visibleItem).filter((it) => !!it.src);
+```
+`visibleItem` blanks `src` to `""` when the cover image is in `hiddenPhotos` AND `photos` is empty, so every album whose cover URL coincidentally appears in `hidden_photos` (or any album with empty `photos`) is filtered out. Fix:
+- In `visibleItem`, only blank `src` when there's a real replacement; otherwise keep the original `src` and let the album still render.
+- Remove the blanket `!!it.src` filter (keep a softer guard: only drop items with no `src` AND no `photos`).
+- Also defensively coerce `hidden_photos` / `slideshow_photos` to `[]` when DB returns `null` (already done in store, double-check).
 
-- Enlarge the tagline "storytelling through three perspectives": bump from `text-sm md:text-base` → `text-base md:text-xl`, widen `max-w-md` → `max-w-2xl`, increase tracking, add subtle italic for "three perspectives".
-- Mobile fix: reduce `text-[14vw]` → `text-[16vw]` only on very small phones is too big; switch to clamp-style `text-[clamp(2.75rem,12vw,7rem)]` and add `pt-24` so headline sits below the fixed nav, not behind it. Tighten min-height to `min-h-[560px]` so it doesn't feel empty on short phones.
+I'll verify with Playwright after the fix that all three tabs render their albums.
 
-## 2. Showcase ("highlight") section cleanup
+## 3. Smooth album loading inside `AlbumDialog`
+Current behavior: masonry columns reflow as each image decodes, so tiles "jump". Plan:
+- Wrap each tile in a fixed-aspect placeholder using the image's natural ratio once known; until loaded, render a `Skeleton` (use `src/components/ui/skeleton.tsx`) at a default 4/5 ratio.
+- Fade images in with `opacity` transition on `onLoad` (no layout shift).
+- Replace the abrupt "Loading more…" sentinel with a small row of 6 skeleton tiles while the next page is mounting.
+- Keep `columns-2 lg:columns-3` masonry; the per-tile aspect placeholder is what kills the jump.
 
-**File:** `src/components/sections/Showcase.tsx`
+(Same treatment applied to `Gallery.tsx` masonry list for parity.)
 
-- Remove the progress bar from highlight.
-- Arrows: left/right `ChevronLeft`/`ChevronRight` already exist on the stage. Make them more prominent (larger glass pill, always visible on mobile too — currently they overlap badge on small screens; nudge to `top-1/2` with `md:p-3 p-2` and `left-2 md:left-4`).
-- Mobile: the side column with "01" + progress was order-2 below stage; make it `md:col-span-3 col-span-12` with index shrunk on phones and the progress bar inline under the stage.
+## 4. Architecture (Spaces) + Street (Stories) — same grid as Weddings
+- `src/pages/Spaces.tsx`: change `<Gallery items={items} variant="grid" />` → `variant="masonry"`.
+- `src/pages/Stories.tsx`: change `variant="collage"` → `variant="masonry"`.
+- No changes to `Gallery.tsx` variant code (keeps grid/collage available for future use).
 
-## 3. Favourite Shots section (admin-managed)
+## 5. Hide / unhide entire albums (admin)
+- DB: add `hidden boolean not null default false` to `public.gallery_items` (migration, with GRANTs already in place).
+- `useGalleryStore.ts`: map `hidden` in/out, default `false`.
+- `GalleryEditor.tsx`: add an "Eye / EyeOff" toggle button in the album header actions row (next to up/down/delete). Visually dim the card when hidden and append "· hidden" to the subtitle.
+- Public pages (`Gallery.tsx`): filter out `it.hidden === true` before rendering.
 
-**New tab in admin → new public section under Photographer.**
-
-- **DB migration:** add row `('favourite_shots', '[]')` to `site_content` (already public-readable, admin-write). No schema change needed — just a new key.
-- **New store hook:** `src/hooks/useFavouriteShotsStore.ts` mirroring `usePhotographerStore` — reads/writes `site_content` key `favourite_shots` as an array of `{ src: string; alt: string; caption?: string }`.
-- **New admin editor:** `src/components/admin/FavouriteShotsEditor.tsx` — list of cards with `ImageUpload` (single + multi), alt text, caption, reorder arrows, delete, plus a "Save changes" bar. Add a new tab in `src/pages/Admin.tsx` between Photographer and FAQ: `<TabsTrigger value="favourites">Favourite Shots</TabsTrigger>`.
-- **New public section:** `src/components/sections/FavouriteShots.tsx` — masonry (`columns-2 lg:columns-3 gap-3`) of the curated photos with hover caption, lightbox on click (reuse `Lightbox` + `useLightbox`). Heading: "Favourite Shots — A personal edit."
-- **Wire into Index:** `src/pages/Index.tsx` add `<FavouriteShots />` after `<Photographer />`.
-
-## 4. Event date in wedding gallery + albums
-
-**Decision:** keep using the existing `caption` field (no schema change). Relabel the admin input from "Caption / location" → "Event date / location (e.g. Tuscany · June 2024)" so users naturally enter it.
-
-- **File:** `src/components/admin/GalleryEditor.tsx` — change placeholder text on the caption Input (line ~145).
-- **File:** `src/components/Gallery.tsx` — surface `caption` on each wedding tile (small chip at bottom-left with calendar icon).
-- **File:** `src/components/AlbumDialog.tsx` — render `caption` as a date subline under the album title (currently shown above as small uppercase chip only when `item.client` present; show it always, with a `Calendar` lucide icon).
-
-## 5. Fix "broken image at top left" after photographer upload
-
-**Likely cause:** `defaultPhotographer.portrait` is a remote Unsplash URL; after upload, `ImageUpload` writes a CDN/S3 key. If the saved value isn't a full URL the `<motion.img src={resolveImageUrl(p.portrait)}>` in `src/components/sections/Photographer.tsx` still renders, but a stray broken `<img>` likely comes from somewhere else loading the same key without `resolveImageUrl`.
-
-**Investigation step** (first action in build mode):
-
-- Open the live site, identify which element renders the broken image at top-left, and which file outputs it. Most probable culprit is a logo/avatar in `Nav.tsx` or a stale reference in `HeroScene.tsx` pulling the photographer portrait.
-
-**Fix:** ensure every `<img>` referencing photographer.portrait goes through `resolveImageUrl()`, and add an `onError` fallback to a placeholder so a missing image doesn't render a broken icon.
-
-## 6. Per-photo hide/unhide
-
-**Goal:** Admin can mark individual photos hidden; public site skips them.
-
-- **Data shape change:** introduce a new field on `GalleryItem`: `hiddenPhotos?: string[]` (array of photo URLs to hide). Stored as JSON inside the same `gallery_items` row — **no DB migration** needed if we reuse `slideshow_photos` pattern; but cleanest is a new JSONB column. Plan: **add column `hidden_photos jsonb not null default '[]'**` via migration on `public.gallery_items`.
-- **Admin (`GalleryEditor.tsx`):** add a second checkbox per photo row next to "Slideshow" labelled "Hidden". Toggling adds/removes the URL from `hiddenPhotos`. Add a visual dim on the row when hidden.
-- **Store (`useGalleryStore.ts`):** map `hidden_photos` ↔ `hiddenPhotos` in read/write.
-- **Public filtering (`AlbumDialog.tsx` + `Gallery.tsx`):** filter `photos`, `slideshowPhotos`, and the cover (if cover is hidden, fall back to first visible photo) by `!hiddenPhotos.includes(url)`.
-
-## 7. Drag-and-drop photo order in admin
-
-**Library:** `@dnd-kit/core` + `@dnd-kit/sortable` (lightweight, react-friendly).
-
-- **Install:** `bun add @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities`.
-- **File:** `src/components/admin/GalleryEditor.tsx` — wrap each album's photos list in `DndContext` + `SortableContext` (vertical list strategy). Each photo row becomes a `useSortable` item with a drag handle (grip icon on the left). On `onDragEnd`, reorder the `photos` array via `arrayMove` and call `update(i, { photos: next })`.
-- **Optional extension:** also DnD the **albums themselves** so order can be set by drag (keeps existing up/down arrow buttons as a fallback — user requested arrows stay in album reorder, so we only add DnD inside an album, not for album order itself).
-
----
+## 6. Homepage mobile responsiveness (`src/components/sections/Hero.tsx`)
+- Reduce headline upper clamp on mobile: `clamp(2.5rem, 11vw, 9rem)` so "Unfold Studios" fits one line on 360–390px screens.
+- Add safe horizontal padding (`px-4 sm:px-6`) and `max-w-[92vw]` on the inner block.
+- Tagline: `text-sm sm:text-base md:text-2xl` and `mt-4 sm:mt-6 md:mt-8` to tighten mobile spacing.
+- `HeroScene` arrows: smaller hit target on mobile (`p-2 md:p-3`) and pulled in from the edge (`left-3 md:left-6`).
+- Reduce `min-h-[560px]` → `min-h-[520px]` so the layout doesn't overflow short phones in landscape.
 
 ## Technical notes
-
-- Migration adds `hidden_photos jsonb not null default '[]'` on `public.gallery_items` (no GRANT changes needed — table already has them).
-- `site_content` already has anon-read + admin-write, so favourites need no migration beyond an initial insert (or just write on first save).
-- Build order in implementation: (1) install dnd-kit → (2) DB migration for `hidden_photos` → (3) regenerate types → (4) refactor store/types → (5) editor + public-site changes → (6) Favourites + Hero + Showcase polish → (7) verify broken-image fix with Playwright.
-
-## Out of scope
-
-- No changes to album reorder arrows (kept per earlier instruction).
-- No DB schema change for event date — reusing `caption`.
+- Migration must include `GRANT` re-affirmation only if needed; `ALTER TABLE ADD COLUMN` does not require new grants.
+- Types file regenerates after the migration approval; only then do I touch the store/editor code that reads `hidden`.
+- Build order: (a) migration → (b) store + editor + Gallery filter → (c) Hero + HeroScene UI → (d) AlbumDialog/Gallery skeleton loading → (e) Spaces/Stories variant swap → (f) Playwright verify all three album tabs render and homepage mobile viewport looks clean.

@@ -48,6 +48,7 @@ export type Database = {
           client: string | null
           created_at: string
           feedback: string | null
+          hidden: boolean
           hidden_photos: Json
           id: string
           photos: Json
@@ -64,6 +65,7 @@ export type Database = {
           client?: string | null
           created_at?: string
           feedback?: string | null
+          hidden?: boolean
           hidden_photos?: Json
           id?: string
           photos?: Json
@@ -80,6 +82,7 @@ export type Database = {
           client?: string | null
           created_at?: string
           feedback?: string | null
+          hidden?: boolean
           hidden_photos?: Json
           id?: string
           photos?: Json

@@ -1,18 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useHeroSlidesStore } from "@/hooks/useHeroSlidesStore";
 import { PhotoImg } from "@/components/PhotoImg";
 
 export const HeroScene = () => {
   const { items: slides, loading } = useHeroSlidesStore();
   const [i, setI] = useState(0);
+  const pausedUntilRef = useRef(0);
 
   useEffect(() => {
     if (slides.length === 0) return;
     setI((p) => (p >= slides.length ? 0 : p));
-    const t = setInterval(() => setI((p) => (p + 1) % slides.length), 4500);
+    const t = setInterval(() => {
+      if (Date.now() < pausedUntilRef.current) return;
+      setI((p) => (p + 1) % slides.length);
+    }, 4500);
     return () => clearInterval(t);
   }, [slides.length]);
+
+  const go = (dir: -1 | 1) => {
+    if (slides.length === 0) return;
+    pausedUntilRef.current = Date.now() + 6000;
+    setI((p) => (p + dir + slides.length) % slides.length);
+  };
 
   // Avoid flashing the default slide before remote slides load.
   if (loading || slides.length === 0) {
@@ -39,47 +50,29 @@ export const HeroScene = () => {
             eager
             loading="eager"
           />
-
         </motion.div>
       </AnimatePresence>
 
-      {/* slide caption */}
-      <div className="absolute bottom-32 right-8 md:right-12 text-right pointer-events-none">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="text-[10px] uppercase tracking-[0.4em] text-primary mb-1">
-              {slides[i].label}
-            </div>
-            <div className="text-xs md:text-sm text-foreground/80 italic">
-              {slides[i].caption}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* progress dots */}
-      <div className="absolute bottom-32 left-8 md:left-12 flex gap-2 pointer-events-auto">
-        {slides.map((_, idx) => (
+      {slides.length > 1 && (
+        <>
           <button
-            key={idx}
-            onClick={() => setI(idx)}
-            aria-label={`Slide ${idx + 1}`}
-            className="group relative h-1 w-8 rounded-full bg-foreground/15 overflow-hidden"
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Previous slide"
+            className="group absolute top-1/2 -translate-y-1/2 left-3 md:left-6 z-10 glass rounded-full p-2 md:p-3 hover:glow transition pointer-events-auto"
           >
-            <span
-              className={`absolute inset-0 origin-left bg-gradient-to-r from-primary to-accent transition-transform duration-500 ${
-                idx === i ? "scale-x-100" : "scale-x-0"
-              }`}
-            />
+            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
           </button>
-        ))}
-      </div>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Next slide"
+            className="group absolute top-1/2 -translate-y-1/2 right-3 md:right-6 z-10 glass rounded-full p-2 md:p-3 hover:glow transition pointer-events-auto"
+          >
+            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+          </button>
+        </>
+      )}
     </div>
   );
 };

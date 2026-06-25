@@ -100,7 +100,7 @@ const Stories = () => {
                 <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{items.length} captures</span>
               </div>
             </Reveal>
-            <Gallery items={items} variant="collage" />
+            <Gallery items={items} variant="masonry" />
           </div>
         </section>
 

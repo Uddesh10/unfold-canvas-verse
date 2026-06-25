@@ -8,6 +8,7 @@ export type GalleryItem = {
   hiddenPhotos?: string[];
   videos?: string[];
   feedback?: string;
+  hidden?: boolean;
   w?: number;
   h?: number;
 };

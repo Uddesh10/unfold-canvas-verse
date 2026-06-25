@@ -8,9 +8,10 @@ interface Props {
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  className?: string;
 }
 
-export const CollapsibleCard = ({ header, actions, children, defaultOpen = false, open: controlled, onOpenChange }: Props) => {
+export const CollapsibleCard = ({ header, actions, children, defaultOpen = false, open: controlled, onOpenChange, className }: Props) => {
   const [internal, setInternal] = useState(defaultOpen);
   const open = controlled ?? internal;
   const setOpen = (v: boolean) => {
@@ -19,7 +20,7 @@ export const CollapsibleCard = ({ header, actions, children, defaultOpen = false
   };
 
   return (
-    <div className="glass rounded-2xl overflow-hidden">
+    <div className={`glass rounded-2xl overflow-hidden ${className ?? ""}`}>
       <div className="flex items-center gap-2 p-3">
         <button
           type="button"

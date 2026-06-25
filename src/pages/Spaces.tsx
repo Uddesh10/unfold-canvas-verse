@@ -74,7 +74,7 @@ const Spaces = () => {
                 <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{items.length} works · 2022—2025</span>
               </div>
             </Reveal>
-            <Gallery items={items} variant="grid" />
+            <Gallery items={items} variant="masonry" />
           </div>
         </section>
 

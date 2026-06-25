@@ -71,6 +71,7 @@ export function useGalleryStore(vertical: Vertical) {
           hidden_photos: it.hiddenPhotos ?? [],
           videos: it.videos ?? [],
           feedback: it.feedback ?? null,
+          hidden: it.hidden ?? false,
         }));
         const { error } = await supabase.from("gallery_items").insert(rows as never);
         if (error) throw error;

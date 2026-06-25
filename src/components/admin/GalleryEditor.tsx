@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Trash2, ArrowUp, ArrowDown, Plus, X, GripVertical } from "lucide-react";
+import { Trash2, ArrowUp, ArrowDown, Plus, X, GripVertical, Eye, EyeOff } from "lucide-react";
 import type { GalleryItem } from "@/data/galleries";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";

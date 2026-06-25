@@ -13,6 +13,27 @@ interface Props {
 
 const PAGE = 24;
 
+const AlbumTile = ({ photo, alt, onClick }: { photo: string; alt: string; onClick: () => void }) => {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div
+      onClick={onClick}
+      className="mb-3 break-inside-avoid inline-block w-full cursor-zoom-in hover:opacity-90 transition rounded-2xl overflow-hidden bg-muted relative"
+    >
+      {!loaded && (
+        <div className="w-full animate-pulse bg-muted/70" style={{ aspectRatio: "4 / 5" }} />
+      )}
+      <PhotoImg
+        photo={photo}
+        variant="grid"
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        className={`block w-full h-auto object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0 absolute inset-0"}`}
+      />
+    </div>
+  );
+};
+
 export const AlbumDialog = ({ item, onClose }: Props) => {
   const open = !!item;
   const pushedRef = useRef(false);

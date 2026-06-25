@@ -201,11 +201,10 @@ export const Gallery = ({ items: rawItems, variant, className }: Props) => {
         ))}
       </div>
       {visible < items.length && (
-        <div
-          ref={sentinelRef}
-          className="h-20 flex items-center justify-center text-xs uppercase tracking-[0.3em] text-muted-foreground mt-6"
-        >
-          Loading more…
+        <div ref={sentinelRef} className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4" aria-label="Loading more">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="aspect-[16/10] rounded-2xl bg-muted/50 animate-pulse" />
+          ))}
         </div>
       )}
       <Lightbox items={items} index={lb.index} onClose={lb.close} onIndexChange={lb.set} />

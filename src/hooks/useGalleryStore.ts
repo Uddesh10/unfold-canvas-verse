@@ -24,6 +24,7 @@ export function useGalleryStore(vertical: Vertical) {
       (data ?? []).map((r) => {
         const slideshow = (r as unknown as { slideshow_photos?: string[] }).slideshow_photos ?? [];
         const hidden = (r as unknown as { hidden_photos?: string[] }).hidden_photos ?? [];
+        const albumHidden = (r as unknown as { hidden?: boolean }).hidden ?? false;
         return {
           src: r.src,
           alt: r.alt ?? "",
@@ -34,6 +35,7 @@ export function useGalleryStore(vertical: Vertical) {
           hiddenPhotos: hidden as string[],
           videos: (r.videos as string[] | null) ?? [],
           feedback: r.feedback ?? undefined,
+          hidden: albumHidden,
         };
       })
     );

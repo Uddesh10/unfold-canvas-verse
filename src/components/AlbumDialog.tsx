@@ -175,29 +175,27 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                 </div>
                 <div className="columns-2 lg:columns-3 gap-3 [column-fill:_balance]">
                   {shown.map((p, i) => (
-                    <motion.div
+                    <AlbumTile
                       key={i}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: (i % PAGE) * 0.03, duration: 0.4 }}
+                      photo={p}
+                      alt={`${item.alt} — ${i + 1}`}
                       onClick={() => lightbox.open(i)}
-                      className="mb-3 break-inside-avoid inline-block w-full cursor-zoom-in hover:opacity-90 transition rounded-2xl overflow-hidden bg-muted"
-                    >
-                      <PhotoImg
-                        photo={p}
-                        variant="grid"
-                        alt={`${item.alt} — ${i + 1}`}
-                        className="block w-full h-auto object-cover"
-                      />
-                    </motion.div>
+                    />
                   ))}
                 </div>
                 {visible < photoUrls.length && (
                   <div
                     ref={sentinelRef}
-                    className="h-20 flex items-center justify-center text-xs uppercase tracking-[0.3em] text-muted-foreground mt-6"
+                    className="mt-3 columns-2 lg:columns-3 gap-3"
+                    aria-label="Loading more"
                   >
-                    Loading more…
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="mb-3 break-inside-avoid w-full rounded-2xl bg-muted/50 animate-pulse"
+                        style={{ height: 180 + (i % 3) * 80 }}
+                      />
+                    ))}
                   </div>
                 )}
               </div>

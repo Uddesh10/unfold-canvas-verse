@@ -101,7 +101,10 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
 
 
 export const Gallery = ({ items: rawItems, variant, className }: Props) => {
-  const items = rawItems.map(visibleItem).filter((it) => !!it.src);
+  const items = rawItems
+    .filter((it) => !it.hidden)
+    .map(visibleItem)
+    .filter((it) => !!it.src || (it.photos && it.photos.length > 0));
   const lb = useLightbox();
   const [album, setAlbum] = useState<GalleryItem | null>(null);
   const PAGE = 24;

@@ -259,6 +259,7 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
               key={i}
               open={isOpen}
               onOpenChange={(v) => setOpen(i, v)}
+              className={it.hidden ? "opacity-60" : ""}
               header={
                 <div className="flex items-center gap-3 min-w-0">
                   {it.src ? (
@@ -274,6 +275,7 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">
                       {it.client?.trim() || it.alt?.trim() || "Untitled album"}
+                      {it.hidden ? <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">· hidden</span> : null}
                     </div>
                     <div className="text-xs text-muted-foreground truncate">
                       {it.caption || "—"} · {photoCount} photo{photoCount === 1 ? "" : "s"}
@@ -285,6 +287,9 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
               }
               actions={
                 <>
+                  <Button variant="ghost" size="icon" onClick={() => update(i, { hidden: !it.hidden })} aria-label={it.hidden ? "Unhide album" : "Hide album"}>
+                    {it.hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => move(i, -1)} aria-label="Move up"><ArrowUp className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => move(i, 1)} aria-label="Move down"><ArrowDown className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(i)} aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>

@@ -10,6 +10,7 @@ import type { GalleryItem } from "@/data/galleries";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
+import { StickyAdminHeader } from "@/components/admin/StickyAdminHeader";
 import { PhotoImg } from "@/components/PhotoImg";
 import {
   DndContext,
@@ -234,19 +235,21 @@ export const GalleryEditor = ({ vertical }: { vertical: Vertical }) => {
 
   return (
     <div className="space-y-4">
-      <SaveBar dirty={dirty} saving={saving} save={save} />
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="text-sm text-muted-foreground">
-          {items.length} album{items.length === 1 ? "" : "s"}
+      <StickyAdminHeader>
+        <SaveBar dirty={dirty} saving={saving} save={save} />
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="text-sm text-muted-foreground">
+            {items.length} album{items.length === 1 ? "" : "s"}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={expandAll}>Expand all</Button>
+            <Button variant="outline" size="sm" onClick={collapseAll}>Collapse all</Button>
+            <Button size="sm" onClick={add}>
+              <Plus className="h-3.5 w-3.5 mr-2" /> Add album
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={expandAll}>Expand all</Button>
-          <Button variant="outline" size="sm" onClick={collapseAll}>Collapse all</Button>
-          <Button size="sm" onClick={add}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add album
-          </Button>
-        </div>
-      </div>
+      </StickyAdminHeader>
 
       <div className="space-y-3">
         {items.map((it, i) => {

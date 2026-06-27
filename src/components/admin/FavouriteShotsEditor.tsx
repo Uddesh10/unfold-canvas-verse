@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { StickyAdminHeader } from "@/components/admin/StickyAdminHeader";
 import { PhotoImg } from "@/components/PhotoImg";
 
 export const FavouriteShotsEditor = () => {
@@ -26,18 +27,20 @@ export const FavouriteShotsEditor = () => {
 
   return (
     <div className="space-y-4">
-      <SaveBar dirty={dirty} saving={saving} save={save} />
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="text-sm text-muted-foreground">
-          {shots.length} favourite shot{shots.length === 1 ? "" : "s"}
+      <StickyAdminHeader>
+        <SaveBar dirty={dirty} saving={saving} save={save} />
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="text-sm text-muted-foreground">
+            {shots.length} favourite shot{shots.length === 1 ? "" : "s"}
+          </div>
+          <div className="flex items-center gap-2">
+            <ImageUpload multiple label="Upload multiple" onUploadMany={addMany} />
+            <Button size="sm" onClick={addOne}>
+              <Plus className="h-3.5 w-3.5 mr-2" /> Add shot
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <ImageUpload multiple label="Upload multiple" onUploadMany={addMany} />
-          <Button size="sm" onClick={addOne}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add shot
-          </Button>
-        </div>
-      </div>
+      </StickyAdminHeader>
 
       <div className="space-y-2">
         {shots.map((s, i) => (

@@ -61,7 +61,7 @@ export const HeroScene = () => {
       {/* Subtle vignette so the glass card always reads well */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
 
-      {/* Centered glass caption card */}
+      {/* Centered caption */}
       <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center px-4">
         <AnimatePresence mode="wait">
           <motion.div
@@ -70,17 +70,17 @@ export const HeroScene = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="glass rounded-2xl px-6 py-5 md:px-10 md:py-7 text-center max-w-[92vw] md:max-w-2xl border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+            className="text-center max-w-[92vw] md:max-w-2xl"
           >
             <div
-              className="font-display leading-[0.95] tracking-tight"
+              className="font-display leading-[0.95] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]"
               style={{ fontSize: "clamp(2rem, 7vw, 5rem)" }}
             >
               <span className="text-gradient">Unfold</span>{" "}
               <span className="font-light italic">Studios</span>
             </div>
             {current.caption && (
-              <div className="mt-3 md:mt-4 text-[10px] md:text-xs uppercase tracking-[0.35em] text-white/90">
+              <div className="mt-3 md:mt-4 text-[10px] md:text-xs uppercase tracking-[0.35em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
                 {current.caption}
               </div>
             )}

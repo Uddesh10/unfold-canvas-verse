@@ -16,7 +16,7 @@ export const verticals = [
   {
     key: "spaces" as const,
     brand: "Unfold Spaces",
-    label: "Architecture",
+    label: "Spaces",
     tagline: "Architecture, in its quietest voice.",
     blurb: "Editorial interior photography that honours light, line, and the calm geometry of considered spaces.",
     path: "/spaces",
@@ -28,7 +28,7 @@ export const verticals = [
   {
     key: "stories" as const,
     brand: "Unfold Stories",
-    label: "Street",
+    label: "Stories",
     tagline: "The city, unposed.",
     blurb: "Documentary street work — grain, contrast, neon, the truth of a moment seen from the kerb.",
     path: "/stories",

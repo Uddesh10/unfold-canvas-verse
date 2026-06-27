@@ -79,8 +79,11 @@ export const HeroScene = () => {
               <span className="text-gradient">Unfold</span>{" "}
               <span className="font-light italic">Studios</span>
             </div>
+            <div className="mt-2 md:mt-3 text-[10px] md:text-xs uppercase tracking-[0.35em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+              Story telling through three perspective
+            </div>
             {current.caption && (
-              <div className="mt-3 md:mt-4 text-[10px] md:text-xs uppercase tracking-[0.35em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+              <div className="mt-1 md:mt-2 text-[10px] md:text-[11px] text-white/60 tracking-wide">
                 {current.caption}
               </div>
             )}

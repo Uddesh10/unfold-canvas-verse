@@ -19,7 +19,7 @@ export const SaveBar = ({ dirty, saving, save, label = "Save changes" }: Props) 
     }
   };
   return (
-    <div className="sticky top-0 z-10 -mx-2 mb-4 flex items-center justify-between gap-3 rounded-xl bg-background/80 backdrop-blur px-3 py-2 border border-border/60">
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-background/80 backdrop-blur px-3 py-2 border border-border/60">
       <div className="text-xs text-muted-foreground">
         {dirty ? "Unsaved changes" : (
           <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> All changes saved</span>

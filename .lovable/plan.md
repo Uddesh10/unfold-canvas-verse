@@ -1,52 +1,65 @@
-# Round of fixes
 
-## 1. Hero slideshow — arrows + remove progress bar (`src/three/HeroScene.tsx`)
-- Remove the bottom-left progress-dots row entirely.
-- Remove the bottom-right caption/label block (it's part of the same "bars" pattern) — keep the slideshow visually clean.
-- Add left/right chevron buttons (lucide `ChevronLeft`/`ChevronRight`) centered vertically at the screen edges, styled `glass rounded-full p-3`, with `aria-label` and hover glow. Click → `setI((i) => (i ± 1 + n) % n)`.
-- Pause autoplay for ~6s after a manual click so it doesn't immediately advance.
-- Hide arrows when only 1 slide is configured.
+## 1. Homepage
 
-## 2. Albums not loading on Weddings / Spaces / Stories
-Symptom: requests return 200 but grids stay empty. Root cause in `src/components/Gallery.tsx`:
-```ts
-const items = rawItems.map(visibleItem).filter((it) => !!it.src);
-```
-`visibleItem` blanks `src` to `""` when the cover image is in `hiddenPhotos` AND `photos` is empty, so every album whose cover URL coincidentally appears in `hidden_photos` (or any album with empty `photos`) is filtered out. Fix:
-- In `visibleItem`, only blank `src` when there's a real replacement; otherwise keep the original `src` and let the album still render.
-- Remove the blanket `!!it.src` filter (keep a softer guard: only drop items with no `src` AND no `photos`).
-- Also defensively coerce `hidden_photos` / `slideshow_photos` to `[]` when DB returns `null` (already done in store, double-check).
+- **Hero caption overlay** (`src/components/sections/Hero.tsx` + `HeroScene.tsx`)
+  - Read current slide index/caption from `useHeroSlidesStore` (lift index into Hero or expose via context/prop callback from `HeroScene`).
+  - Render an additional centered overlay: glass card (`glass` util, `backdrop-blur`, soft border, rounded-2xl) containing:
+    - Slide caption (per-slide `caption` field) in small uppercase tracking text.
+    - "Unfold Studios" wordmark (already present) repositioned inside the card for readability.
+  - Animate caption with framer-motion fade on slide change.
+- **Photographer ↔ Favourite Shots gap**: reduce top padding on `FavouriteShots` from `py-24 md:py-32` → `pt-6 md:pt-10 pb-24 md:pb-32`.
+- **Remove Behance link**: drop the Behance `<a>` block (and the `Palette` import) in `Photographer.tsx`. Keep field in data store untouched.
+- **Mobile hero cropping**: in `HeroScene.tsx` the `PhotoImg` uses `object-cover`. Add `object-center` and switch hero `<section>` to fill height with `object-cover` plus a smaller-DPR aware container; specifically on `<md` use `object-[center_30%]` and ensure the picture uses the `full` variant. Verify wrapper is `h-[100svh] min-h-[560px]` (no aspect crop). Add `sm:object-cover object-contain bg-black` fallback only if user reports it still crops faces (default keep cover but anchor center).
 
-I'll verify with Playwright after the fix that all three tabs render their albums.
+## 2. Weddings
 
-## 3. Smooth album loading inside `AlbumDialog`
-Current behavior: masonry columns reflow as each image decodes, so tiles "jump". Plan:
-- Wrap each tile in a fixed-aspect placeholder using the image's natural ratio once known; until loaded, render a `Skeleton` (use `src/components/ui/skeleton.tsx`) at a default 4/5 ratio.
-- Fade images in with `opacity` transition on `onLoad` (no layout shift).
-- Replace the abrupt "Loading more…" sentinel with a small row of 6 skeleton tiles while the next page is mounting.
-- Keep `columns-2 lg:columns-3` masonry; the per-tile aspect placeholder is what kills the jump.
+- **Tile name not italic**: in `Gallery.tsx` `SlideshowImage`, change `font-display italic` → `font-display` (non-italic) on the client name.
+- **Album grid stable layout**: in `AlbumDialog.tsx` the masonry columns shift while images load. Switch each `AlbumTile` to render a fixed aspect placeholder derived from a default ratio (`4/5`) AND, once loaded, snap the image inline so columns don't re-balance. Concretely: keep skeleton with `aspectRatio: 4/5`, and on `<img>` add `style={{ aspectRatio: w/h }}` after `onLoad` reads `naturalWidth/Height`. Use `column-fill: balance` only once images finish (`column-fill: auto` initially) — simplest fix: replace CSS columns masonry with a JS-balanced 3-column array (split `shown` into N column buckets and render N flex columns) so each new image only extends its own column.
+- **Smoother review transitions**: in `Weddings.tsx` reviews, replace the y-slide AnimatePresence with a crossfade + slight scale (duration 0.7, ease `[0.22,1,0.36,1]`), animate the peek cards too (fade their content key with `AnimatePresence`). Increase auto-advance to 6s.
+- **Mobile album hover**:
+  - On `<md`, hide the hover overlay entirely and instead always render a compact 2-line caption block UNDER the image (title + date), so they never overlap.
+  - In `SlideshowImage`: wrap the bottom-left date chip + bottom-right name into responsive variants — desktop keeps current absolute overlay, mobile renders below the tile via a sibling `<div className="md:hidden mt-2">`. Shrink mobile name to `text-base` non-italic.
+  - **Disable mobile slideshow**: detect `useIsMobile()` (already in repo) and skip the interval + only render the cover `PhotoImg`.
 
-(Same treatment applied to `Gallery.tsx` masonry list for parity.)
+## 3. Stories (renamed everywhere — already called Stories in code, but vertical label is "Street")
 
-## 4. Architecture (Spaces) + Street (Stories) — same grid as Weddings
-- `src/pages/Spaces.tsx`: change `<Gallery items={items} variant="grid" />` → `variant="masonry"`.
-- `src/pages/Stories.tsx`: change `variant="collage"` → `variant="masonry"`.
-- No changes to `Gallery.tsx` variant code (keeps grid/collage available for future use).
+- **Rename Street → Stories**: in `src/data/themes.ts` set `stories.label = "Stories"`. Audit `Nav.tsx`, `PerspectiveBar`, `Footer`, any "Street" string → "Stories".
+- **Per-page hero carousel**: new admin editor `StoriesHeroEditor` writing `site_content` key `stories_hero_slides` (reuse `HeroSlide[]` shape). New hook `useStoriesHeroSlidesStore`. Replace the static `<motion.img>` block in `Stories.tsx` hero with a new `PageCarousel` component (extracted from `HeroScene` minus the brand overlay) that takes `slides` prop. Keep section heading/tagline above or below as today, just no "Unfold / three perspectives" caption.
+- **Videos section above gallery**: new `site_content` key `stories_videos: string[]` (YouTube/Vimeo embed URLs). New `StoriesVideosEditor` (collapsible card per video, URL input, reorder + delete, Save). Render a new section in `Stories.tsx` directly above the "EDITION 07 // FRAMES" section: responsive grid of `aspect-video` iframes.
+- **Remove**: marquee field-notes section, the manifesto two-column section, and the "EDITION 07 // FRAMES" heading row (keep the gallery, swap heading to just "Frames" + count or drop heading entirely per a minimal look — will drop heading).
 
-## 5. Hide / unhide entire albums (admin)
-- DB: add `hidden boolean not null default false` to `public.gallery_items` (migration, with GRANTs already in place).
-- `useGalleryStore.ts`: map `hidden` in/out, default `false`.
-- `GalleryEditor.tsx`: add an "Eye / EyeOff" toggle button in the album header actions row (next to up/down/delete). Visually dim the card when hidden and append "· hidden" to the subtitle.
-- Public pages (`Gallery.tsx`): filter out `it.hidden === true` before rendering.
+## 4. Footer (`src/components/Footer.tsx`)
 
-## 6. Homepage mobile responsiveness (`src/components/sections/Hero.tsx`)
-- Reduce headline upper clamp on mobile: `clamp(2.5rem, 11vw, 9rem)` so "Unfold Studios" fits one line on 360–390px screens.
-- Add safe horizontal padding (`px-4 sm:px-6`) and `max-w-[92vw]` on the inner block.
-- Tagline: `text-sm sm:text-base md:text-2xl` and `mt-4 sm:mt-6 md:mt-8` to tighten mobile spacing.
-- `HeroScene` arrows: smaller hit target on mobile (`p-2 md:p-3`) and pulled in from the edge (`left-3 md:left-6`).
-- Reduce `min-h-[560px]` → `min-h-[520px]` so the layout doesn't overflow short phones in landscape.
+- Remove tagline paragraph under the brand.
+- Brand text: "Unfold" → "Unfold Studios".
+- Replace Contact section content with the same links rendered in `Photographer.tsx`: Email, Instagram, Location (from `usePhotographerStore`). Behance already being removed globally — exclude.
 
-## Technical notes
-- Migration must include `GRANT` re-affirmation only if needed; `ALTER TABLE ADD COLUMN` does not require new grants.
-- Types file regenerates after the migration approval; only then do I touch the store/editor code that reads `hidden`.
-- Build order: (a) migration → (b) store + editor + Gallery filter → (c) Hero + HeroScene UI → (d) AlbumDialog/Gallery skeleton loading → (e) Spaces/Stories variant swap → (f) Playwright verify all three album tabs render and homepage mobile viewport looks clean.
+## 5. Spaces (Architecture → Spaces)
+
+- **Rename Architecture → Spaces everywhere**: `src/data/themes.ts` `spaces.label = "Spaces"`. Audit all UI strings ("Architecture" → "Spaces") in `Nav`, perspective bar, `Footer`, gallery filters, SEO copy.
+- **Per-page hero carousel**: same pattern as Stories — new `SpacesHeroEditor`, `site_content` key `spaces_hero_slides`, `useSpacesHeroSlidesStore`. Replace the single `<motion.img>` and the "Architecture, in its quietest voice." headline block with the shared `PageCarousel` component (no brand overlay).
+- Remove the "Two-column note" section (`Approach / Light first…`).
+- Change "Selected projects" → "Projects".
+- Remove `{items.length} works · 2022—2025` text.
+- Remove the "Day rates and project packages. Travel worldwide" paragraph in the CTA block (keep heading + button).
+
+## 6. Admin
+
+- **Image expand modal**: in `ImageUpload.tsx` add a small "Expand" (Maximize2) button overlay on every preview thumb (both `compact` and full variants). Clicking opens a centered modal (Radix `Dialog`, `max-w-2xl`, `aspect-auto`, image fits) using `PhotoImg variant="full"`. Close on backdrop / Esc.
+- **Sticky expand/collapse bar**: `GalleryEditor`, `HeroSlidesEditor`, `TestimonialsEditor`, `FaqEditor`, `FavouriteShotsEditor` — wrap the existing header row (Expand all / Collapse all + Save) in a `sticky top-0 z-20 bg-background/95 backdrop-blur border-b py-3 -mx-* px-*` container so it stays visible while scrolling each tab.
+
+## Database
+
+- No schema changes required — new content uses existing `site_content` (jsonb key/value) table:
+  - `stories_hero_slides` (HeroSlide[])
+  - `spaces_hero_slides` (HeroSlide[])
+  - `stories_videos` (string[])
+
+## New / modified files (high level)
+
+- New: `src/components/PageCarousel.tsx`, `src/hooks/useStoriesHeroSlidesStore.ts`, `src/hooks/useSpacesHeroSlidesStore.ts`, `src/hooks/useStoriesVideosStore.ts`, `src/components/admin/StoriesHeroEditor.tsx`, `src/components/admin/SpacesHeroEditor.tsx`, `src/components/admin/StoriesVideosEditor.tsx`, `src/components/admin/ImageExpandModal.tsx`.
+- Modified: `Hero.tsx`, `HeroScene.tsx`, `Photographer.tsx`, `FavouriteShots.tsx`, `Gallery.tsx`, `AlbumDialog.tsx`, `Weddings.tsx`, `Stories.tsx`, `Spaces.tsx`, `Footer.tsx`, `Nav.tsx`, `themes.ts`, `Admin.tsx`, `ImageUpload.tsx`, all editors mentioned for sticky header, `pendingUploads.ts` (no change), `useSiteContent.ts` (no change).
+
+## Not touched
+
+- DB schema, AWS pipeline, auth flow, image pipeline.

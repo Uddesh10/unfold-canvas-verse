@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { GalleryItem } from "@/data/galleries";
 import { PhotoImg } from "@/components/PhotoImg";
 import { Lightbox, useLightbox } from "@/components/Lightbox";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   item: GalleryItem | null;
@@ -14,21 +15,27 @@ interface Props {
 const PAGE = 24;
 
 const AlbumTile = ({ photo, alt, onClick }: { photo: string; alt: string; onClick: () => void }) => {
+  const [ratio, setRatio] = useState<number>(4 / 5);
   const [loaded, setLoaded] = useState(false);
   return (
     <div
       onClick={onClick}
-      className="mb-3 break-inside-avoid inline-block w-full cursor-zoom-in hover:opacity-90 transition rounded-2xl overflow-hidden bg-muted relative"
+      className="cursor-zoom-in hover:opacity-90 transition rounded-2xl overflow-hidden bg-muted relative"
+      style={{ aspectRatio: ratio }}
     >
-      {!loaded && (
-        <div className="w-full animate-pulse bg-muted/70" style={{ aspectRatio: "4 / 5" }} />
-      )}
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-muted/70" />}
       <PhotoImg
         photo={photo}
         variant="grid"
         alt={alt}
-        onLoad={() => setLoaded(true)}
-        className={`block w-full h-auto object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0 absolute inset-0"}`}
+        onLoad={(e) => {
+          const img = e.currentTarget as HTMLImageElement;
+          if (img.naturalWidth && img.naturalHeight) {
+            setRatio(img.naturalWidth / img.naturalHeight);
+          }
+          setLoaded(true);
+        }}
+        className={`block w-full h-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </div>
   );
@@ -40,6 +47,7 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
   const lightbox = useLightbox();
   const [visible, setVisible] = useState(PAGE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const isMobile = useIsMobile();
 
   const photoUrls = useMemo(
     () => {
@@ -108,6 +116,24 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
 
   const handleClose = () => onClose();
   const shown = photoUrls.slice(0, visible);
+
+  // Distribute shown photos into N column buckets (round-robin)
+  // so adding more images only appends to existing columns instead of
+  // re-flowing everything. This prevents the layout from "jumping".
+  const cols = isMobile ? 2 : 3;
+  const buckets: string[][] = Array.from({ length: cols }, () => []);
+  shown.forEach((p, idx) => buckets[idx % cols].push(p));
+  // Track each photo's original lightbox index for keyboard nav consistency.
+  const indexOf = (p: string, occurrence: number) => {
+    let count = 0;
+    for (let i = 0; i < shown.length; i++) {
+      if (shown[i] === p) {
+        if (count === occurrence) return i;
+        count++;
+      }
+    }
+    return 0;
+  };
 
   return (
     <AnimatePresence>
@@ -194,28 +220,44 @@ export const AlbumDialog = ({ item, onClose }: Props) => {
                     {Math.min(visible, photoUrls.length)} / {photoUrls.length}
                   </span>
                 </div>
-                <div className="columns-2 lg:columns-3 gap-3 [column-fill:_balance]">
-                  {shown.map((p, i) => (
-                    <AlbumTile
-                      key={i}
-                      photo={p}
-                      alt={`${item.alt} — ${i + 1}`}
-                      onClick={() => lightbox.open(i)}
-                    />
-                  ))}
+                <div className="flex gap-3">
+                  {buckets.map((col, ci) => {
+                    const occ: Record<string, number> = {};
+                    return (
+                      <div key={ci} className="flex-1 flex flex-col gap-3 min-w-0">
+                        {col.map((p, ri) => {
+                          const k = occ[p] ?? 0;
+                          occ[p] = k + 1;
+                          const idx = indexOf(p, k);
+                          return (
+                            <AlbumTile
+                              key={`${ci}-${ri}`}
+                              photo={p}
+                              alt={`${item.alt} — ${idx + 1}`}
+                              onClick={() => lightbox.open(idx)}
+                            />
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
                 </div>
                 {visible < photoUrls.length && (
                   <div
                     ref={sentinelRef}
-                    className="mt-3 columns-2 lg:columns-3 gap-3"
+                    className="mt-3 flex gap-3"
                     aria-label="Loading more"
                   >
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="mb-3 break-inside-avoid w-full rounded-2xl bg-muted/50 animate-pulse"
-                        style={{ height: 180 + (i % 3) * 80 }}
-                      />
+                    {Array.from({ length: cols }).map((_, ci) => (
+                      <div key={ci} className="flex-1 flex flex-col gap-3 min-w-0">
+                        {Array.from({ length: 2 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-full rounded-2xl bg-muted/50 animate-pulse"
+                            style={{ height: 180 + i * 60 }}
+                          />
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}

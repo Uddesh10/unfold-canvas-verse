@@ -10,6 +10,9 @@ import { SubmissionsViewer } from "@/components/admin/SubmissionsViewer";
 import { HeroSlidesEditor } from "@/components/admin/HeroSlidesEditor";
 import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
 import { FavouriteShotsEditor } from "@/components/admin/FavouriteShotsEditor";
+import { StoriesHeroEditor } from "@/components/admin/StoriesHeroEditor";
+import { SpacesHeroEditor } from "@/components/admin/SpacesHeroEditor";
+import { StoriesVideosEditor } from "@/components/admin/StoriesVideosEditor";
 
 import { Seo } from "@/components/Seo";
 
@@ -56,7 +59,10 @@ const Admin = () => {
             <TabsTrigger value="weddings">Weddings</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="spaces">Spaces</TabsTrigger>
+            <TabsTrigger value="spaces-hero">Spaces hero</TabsTrigger>
             <TabsTrigger value="stories">Stories</TabsTrigger>
+            <TabsTrigger value="stories-hero">Stories hero</TabsTrigger>
+            <TabsTrigger value="stories-videos">Stories videos</TabsTrigger>
             <TabsTrigger value="photographer">Photographer</TabsTrigger>
             <TabsTrigger value="favourites">Favourite Shots</TabsTrigger>
             <TabsTrigger value="faq">FAQ</TabsTrigger>
@@ -66,7 +72,10 @@ const Admin = () => {
           <TabsContent value="weddings" className="mt-6"><GalleryEditor vertical="weddings" /></TabsContent>
           <TabsContent value="testimonials" className="mt-6"><TestimonialsEditor /></TabsContent>
           <TabsContent value="spaces" className="mt-6"><GalleryEditor vertical="spaces" /></TabsContent>
+          <TabsContent value="spaces-hero" className="mt-6"><SpacesHeroEditor /></TabsContent>
           <TabsContent value="stories" className="mt-6"><GalleryEditor vertical="stories" /></TabsContent>
+          <TabsContent value="stories-hero" className="mt-6"><StoriesHeroEditor /></TabsContent>
+          <TabsContent value="stories-videos" className="mt-6"><StoriesVideosEditor /></TabsContent>
           <TabsContent value="photographer" className="mt-6"><PhotographerEditor /></TabsContent>
           <TabsContent value="favourites" className="mt-6"><FavouriteShotsEditor /></TabsContent>
           <TabsContent value="faq" className="mt-6"><FaqEditor /></TabsContent>

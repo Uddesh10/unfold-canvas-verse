@@ -6,6 +6,7 @@ import { Trash2, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { SaveBar } from "@/components/admin/SaveBar";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { CollapsibleCard } from "@/components/admin/CollapsibleCard";
+import { StickyAdminHeader } from "@/components/admin/StickyAdminHeader";
 import { PhotoImg } from "@/components/PhotoImg";
 
 export const HeroSlidesEditor = () => {
@@ -38,20 +39,22 @@ export const HeroSlidesEditor = () => {
 
   return (
     <div className="space-y-4">
-      <SaveBar dirty={dirty} saving={saving} save={save} />
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div>
-          <h3 className="font-display text-xl">Hero carousel</h3>
-          <p className="text-sm text-muted-foreground">Background slides shown on the homepage hero.</p>
+      <StickyAdminHeader>
+        <SaveBar dirty={dirty} saving={saving} save={save} />
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <h3 className="font-display text-xl">Hero carousel</h3>
+            <p className="text-sm text-muted-foreground">Background slides shown on the homepage hero.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={expandAll}>Expand all</Button>
+            <Button variant="outline" size="sm" onClick={collapseAll}>Collapse all</Button>
+            <Button size="sm" onClick={add}>
+              <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={expandAll}>Expand all</Button>
-          <Button variant="outline" size="sm" onClick={collapseAll}>Collapse all</Button>
-          <Button size="sm" onClick={add}>
-            <Plus className="h-3.5 w-3.5 mr-2" /> Add slide
-          </Button>
-        </div>
-      </div>
+      </StickyAdminHeader>
 
       <div className="space-y-3">
         {items.map((it, i) => (

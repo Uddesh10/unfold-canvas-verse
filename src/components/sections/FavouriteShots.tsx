@@ -18,7 +18,7 @@ export const FavouriteShots = () => {
   }));
 
   return (
-    <section id="favourites" className="relative py-24 md:py-32">
+    <section id="favourites" className="relative pt-6 md:pt-10 pb-24 md:pb-32">
       <div className="container mx-auto px-6">
         <Reveal>
           <div className="text-center mb-12">

@@ -76,7 +76,7 @@ export const HeroScene = () => {
               className="font-display leading-[0.95] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]"
               style={{ fontSize: "clamp(2rem, 7vw, 5rem)" }}
             >
-              <span className="text-gradient">Unfold</span.span>{" "}
+              <span className="text-gradient">Unfold</span>{" "}
               <span className="font-light italic">Studios</span>
             </div>
             <div className="mt-2 md:mt-3 text-[10px] md:text-xs uppercase tracking-[0.35em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">

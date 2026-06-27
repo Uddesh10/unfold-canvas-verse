@@ -44,7 +44,7 @@ const Weddings = () => {
       if (!pausedRef.current) {
         setIndex((i) => i + 1);
       }
-    }, 5000);
+    }, 6000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -117,10 +117,10 @@ const Weddings = () => {
                       <AnimatePresence mode="wait">
                         <motion.figure
                           key={safeIndex}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -12 }}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          initial={{ opacity: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 1.01 }}
+                          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                           className="bg-white shadow-[0_20px_50px_rgba(45,41,38,0.05)] border border-foreground/5 p-10 md:p-14 relative rounded-sm h-full"
                         >
                           <span

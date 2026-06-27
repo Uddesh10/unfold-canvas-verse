@@ -1,8 +1,10 @@
-import { Upload, X } from "lucide-react";
+import { useState } from "react";
+import { Upload, X, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { stageFile, isPendingToken } from "@/lib/pendingUploads";
 import { PhotoImg } from "@/components/PhotoImg";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface Props {
   value?: string;
@@ -23,6 +25,8 @@ export const ImageUpload = ({
   multiple = false,
   onUploadMany,
 }: Props) => {
+  const [expanded, setExpanded] = useState(false);
+
   const handleSingle = (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please pick an image file");
@@ -48,13 +52,21 @@ export const ImageUpload = ({
   return (
     <div className={cn("space-y-2", compact && "flex items-center gap-2 space-y-0")}>
       {!multiple && value && !compact && (
-        <div className={`${aspect} relative overflow-hidden rounded-lg bg-muted`}>
+        <div className={`${aspect} relative overflow-hidden rounded-lg bg-muted group`}>
           <PhotoImg photo={value} variant="grid" alt="" className="h-full w-full object-cover" />
           {pending && (
             <div className="absolute bottom-2 left-2 text-[10px] uppercase tracking-wider bg-background/80 px-2 py-0.5 rounded">
               Pending
             </div>
           )}
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="absolute top-2 left-2 bg-background/80 rounded-full p-1 hover:bg-background opacity-0 group-hover:opacity-100 transition"
+            aria-label="Expand image"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
           <button
             type="button"
             onClick={() => onChange?.("")}
@@ -66,12 +78,20 @@ export const ImageUpload = ({
         </div>
       )}
       {!multiple && value && compact && (
-        <div className="h-10 w-10 shrink-0 rounded overflow-hidden bg-muted relative">
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="h-10 w-10 shrink-0 rounded overflow-hidden bg-muted relative group"
+          aria-label="Expand image"
+        >
           <PhotoImg photo={value} variant="thumb" alt="" className="h-full w-full object-cover" />
           {pending && (
             <div className="absolute inset-0 ring-1 ring-primary/60 rounded pointer-events-none" />
           )}
-        </div>
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+            <Maximize2 className="h-3.5 w-3.5 text-white" />
+          </div>
+        </button>
       )}
       <label
         className={cn(
@@ -104,6 +124,22 @@ export const ImageUpload = ({
         >
           <X className="h-4 w-4" />
         </button>
+      )}
+
+      {value && (
+        <Dialog open={expanded} onOpenChange={setExpanded}>
+          <DialogContent className="max-w-2xl p-2 bg-background">
+            <div className="w-full max-h-[80vh] flex items-center justify-center bg-muted rounded">
+              <PhotoImg
+                photo={value}
+                variant="full"
+                eager
+                alt=""
+                className="max-h-[80vh] w-auto max-w-full object-contain"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

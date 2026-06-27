@@ -6,6 +6,7 @@ import { AlbumDialog } from "@/components/AlbumDialog";
 import { PhotoImg } from "@/components/PhotoImg";
 import type { GalleryItem } from "@/data/galleries";
 import { Reveal } from "@/components/Reveal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   items: GalleryItem[];
@@ -27,8 +28,8 @@ const visibleItem = (it: GalleryItem): GalleryItem => {
   return { ...it, src, photos, slideshowPhotos: slideshow };
 };
 
-// Mini slideshow on hover.
-const SlideshowImage = ({ item }: { item: GalleryItem }) => {
+// Mini slideshow on hover (desktop only).
+const SlideshowImage = ({ item, mobile }: { item: GalleryItem; mobile: boolean }) => {
   const slideshow = item.slideshowPhotos && item.slideshowPhotos.length > 0
     ? item.slideshowPhotos
     : [item.src];
@@ -37,7 +38,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
   const [maxMounted, setMaxMounted] = useState(0);
 
   useEffect(() => {
-    if (!hover || slideshow.length < 2) return;
+    if (mobile || !hover || slideshow.length < 2) return;
     const t = setInterval(() => {
       setI((p) => {
         const next = (p + 1) % slideshow.length;
@@ -46,7 +47,7 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
       });
     }, 1500);
     return () => clearInterval(t);
-  }, [hover, slideshow.length]);
+  }, [hover, slideshow.length, mobile]);
 
   useEffect(() => {
     if (!hover) setI(0);
@@ -55,44 +56,64 @@ const SlideshowImage = ({ item }: { item: GalleryItem }) => {
   return (
     <div
       className="relative h-full w-full"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      onMouseEnter={() => !mobile && setHover(true)}
+      onMouseLeave={() => !mobile && setHover(false)}
     >
-      {slideshow.map((p, idx) => {
-        if (idx > maxMounted) return null;
-        return (
-          <PhotoImg
-            key={idx}
-            photo={p}
-            variant="grid"
-            alt={item.alt}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-              idx === i ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        );
-      })}
-      <PhotoImg
-        photo={slideshow[0]}
-        variant="grid"
-        alt=""
-        aria-hidden
-        className="invisible w-full h-auto"
-      />
+      {mobile ? (
+        <PhotoImg
+          photo={item.src}
+          variant="grid"
+          alt={item.alt}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        slideshow.map((p, idx) => {
+          if (idx > maxMounted) return null;
+          return (
+            <PhotoImg
+              key={idx}
+              photo={p}
+              variant="grid"
+              alt={item.alt}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+                idx === i ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          );
+        })
+      )}
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      {!mobile && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      )}
 
-      {/* Always-visible event date chip (bottom-left) */}
-      {item.caption && (
+      {/* Desktop: date chip overlay + name on hover */}
+      {!mobile && item.caption && (
         <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-sm text-[10px] uppercase tracking-[0.2em] text-white">
           <Calendar className="h-3 w-3" />
           {item.caption}
         </span>
       )}
-
-      {item.client && (
+      {!mobile && item.client && (
         <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="font-display text-2xl italic text-white text-right">{item.client}</div>
+          <div className="font-display text-2xl text-white text-right">{item.client}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MobileCaption = ({ item }: { item: GalleryItem }) => {
+  if (!item.client && !item.caption) return null;
+  return (
+    <div className="mt-2 px-1 text-left">
+      {item.client && (
+        <div className="text-sm font-display text-foreground truncate">{item.client}</div>
+      )}
+      {item.caption && (
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground inline-flex items-center gap-1 mt-0.5">
+          <Calendar className="h-3 w-3" />
+          {item.caption}
         </div>
       )}
     </div>
@@ -107,6 +128,7 @@ export const Gallery = ({ items: rawItems, variant, className }: Props) => {
     .filter((it) => !!it.src || (it.photos && it.photos.length > 0));
   const lb = useLightbox();
   const [album, setAlbum] = useState<GalleryItem | null>(null);
+  const isMobile = useIsMobile();
   const PAGE = 24;
   const [visible, setVisible] = useState(PAGE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -147,9 +169,12 @@ export const Gallery = ({ items: rawItems, variant, className }: Props) => {
             <Reveal key={i} delay={(i % 6) * 0.05}>
               <button
                 onClick={() => onItemClick(it, i)}
-                className="group block w-full aspect-[4/5] overflow-hidden bg-muted relative"
+                className="group block w-full text-left"
               >
-                <SlideshowImage item={it} />
+                <div className="aspect-[4/5] overflow-hidden bg-muted relative rounded-md">
+                  <SlideshowImage item={it} mobile={isMobile} />
+                </div>
+                {isMobile && <MobileCaption item={it} />}
               </button>
             </Reveal>
           ))}
@@ -175,7 +200,7 @@ export const Gallery = ({ items: rawItems, variant, className }: Props) => {
               transition={{ delay: (i % 5) * 0.04, duration: 0.5 }}
               className={`group relative overflow-hidden bg-muted ${spans[i % spans.length]}`}
             >
-              <SlideshowImage item={it} />
+              <SlideshowImage item={it} mobile={isMobile} />
             </motion.button>
           ))}
         </div>
@@ -193,9 +218,12 @@ export const Gallery = ({ items: rawItems, variant, className }: Props) => {
           <Reveal key={i} delay={(i % 5) * 0.06}>
             <button
               onClick={() => onItemClick(it, i)}
-              className="group block w-full aspect-[16/10] overflow-hidden rounded-2xl relative bg-muted"
+              className="group block w-full text-left"
             >
-              <SlideshowImage item={it} />
+              <div className="aspect-[16/10] overflow-hidden rounded-2xl relative bg-muted">
+                <SlideshowImage item={it} mobile={isMobile} />
+              </div>
+              {isMobile && <MobileCaption item={it} />}
             </button>
           </Reveal>
         ))}

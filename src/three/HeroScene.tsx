@@ -88,6 +88,31 @@ export const HeroScene = () => {
         </AnimatePresence>
       </div>
 
+      {/* Bottom-right name + caption */}
+      <div className="pointer-events-none absolute bottom-6 right-6 md:bottom-10 md:right-10 z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="glass rounded-xl px-4 py-3 md:px-5 md:py-3.5 border border-white/10 text-right"
+          >
+            {current.label && (
+              <div className="text-[11px] md:text-xs uppercase tracking-[0.3em] text-white/80 font-medium">
+                {current.label}
+              </div>
+            )}
+            {current.caption && (
+              <div className="mt-1 text-[10px] md:text-[11px] text-white/60 tracking-wide">
+                {current.caption}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
       {slides.length > 1 && (
         <>
           <button

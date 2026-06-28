@@ -1,38 +1,33 @@
 # Plan
 
-## 1. Hero bottom-right caption — show customer name
-File: `src/three/HeroScene.tsx`
+## Goal
 
-In the bottom-right glass card, prepend `current.label` above the caption when present:
-```
-{label}
-{caption}
-```
-Style: label in small uppercase tracking (text-[10px] uppercase tracking-[0.3em] text-white/70), caption stays at text-sm md:text-base. No admin/data changes — `label` already exists on `HeroSlide` and is editable in `HeroSlidesEditor`.
+Replace the static `bottomRightText` blurb on Spaces and Stories carousels with a per-slide caption block styled like the Hero carousel, plus a small editorial "tag line" inspired by the reference image (`/// UNFOLD STORIES — FIELD EDITION 07`).
 
-## 2. Reduce vertical spacing between homepage sections
-Files: `src/components/sections/About.tsx`, `Process.tsx`, `Booking.tsx`, `Faq.tsx`, `Photographer.tsx`, `FavouriteShots.tsx`
+## Changes
 
-Replace section vertical padding roughly py-24/py-32 → py-12 md:py-16. Only top/bottom padding; no layout or content changes.
+### 1. `src/components/PageCarousel.tsx`
 
-## 3. Spaces carousel overlays
-File: `src/pages/Spaces.tsx` — add overlay props to `<PageCarousel>`.
-File: `src/components/PageCarousel.tsx` — accept new optional props:
-- `centerTitle?: { brand: string; tagline: string }`
-- `bottomRightText?: string`
+- Replace the `bottomRightText?: string` prop with `bottomRightTag?: string` (small uppercase editorial label, e.g. `"/// UNFOLD STORIES — FIELD EDITION 07"` or `"/// UNFOLD SPACES — VOLUME 01"`).
+- Render the bottom-right glass card the same way as Hero:
+  - Top line: `bottomRightTag` in `font-mono text-[10px] uppercase tracking-[0.3em] text-accent/80` (mimics the cyan `///` tag in the reference).
+  - Middle line: current slide's `label` in `text-[10px] md:text-xs uppercase tracking-[0.3em] text-white/70 mb-1`.
+  - Bottom line: current slide's `caption` in `text-sm md:text-base text-white/90`.
+- Animate label+caption on slide change (fade/slide, matching Hero's `AnimatePresence`). The tag stays static.
+- Hide the card when neither tag nor caption nor label exists for the current slide.
 
-When provided, render:
-- Centered overlay (same styling as Hero center block, no glass bg, drop-shadow): brand "Unfold Spaces" (display font) + tagline "Architecture, in its quietest voice." (uppercase tracking).
-- Bottom-right glass card with the blurb: "Photography for architects, interior designers and hospitality brands. We make rooms hold their breath."
+### 2. `src/pages/Spaces.tsx`
 
-These overlays are static across slides (do not animate with slide change), matching the Hero pattern.
+- Remove `bottomRightText={...}` prop.
+- Add `bottomRightTag="/// UNFOLD SPACES — VOLUME 01"` (creative interpretation, not a copy).
 
-## 4. Stories carousel overlays
-File: `src/pages/Stories.tsx` — pass same new props.
-- Center: brand "Unfold Stories" + tagline "THE CITY, UNPOSED." (line break preserved).
-- Bottom-right glass card: same "THE CITY, UNPOSED." text (as requested).
+### 3. `src/pages/Stories.tsx`
+
+- Remove `bottomRightText={...}` prop.
+- Add `bottomRightTag="/// UNFOLD STORIES — FIELD EDITION 07"`.
 
 ## Notes
-- No DB/schema/edge-function changes.
-- No admin UI changes.
-- Reuses existing `glass`, `text-gradient`, and typography utilities from Hero for visual consistency.
+
+- Center overlay (`centerTitle`) is unchanged on both pages.
+- Hero scene is unchanged.
+- No data/schema/admin changes — relies on existing `label` and `caption` fields on each `HeroSlide`.

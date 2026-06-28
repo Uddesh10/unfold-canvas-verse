@@ -30,7 +30,7 @@ const Spaces = () => {
             loading={loading}
             heightClass="h-[80svh] min-h-[520px]"
             centerTitle={{ brand: "Unfold Spaces", tagline: "Architecture, in its quietest voice." }}
-            bottomRightText={"Photography for architects, interior designers and hospitality brands.\nWe make rooms hold their breath."}
+            bottomRightTag="/// UNFOLD SPACES — VOLUME 01"
           />
         </section>
 

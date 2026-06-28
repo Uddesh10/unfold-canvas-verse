@@ -12,7 +12,7 @@ interface Props {
   className?: string;
   heightClass?: string;
   centerTitle?: { brand: string; tagline: string };
-  bottomRightText?: string;
+  bottomRightTag?: string;
 }
 
 export const PageCarousel = ({

@@ -21,7 +21,7 @@ export const PageCarousel = ({
   className = "",
   heightClass = "h-[70svh] min-h-[480px]",
   centerTitle,
-  bottomRightText,
+  bottomRightTag,
 }: Props) => {
   const [i, setI] = useState(0);
   const pausedUntilRef = useRef(0);

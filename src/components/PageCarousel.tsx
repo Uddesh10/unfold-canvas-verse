@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PhotoImg } from "@/components/PhotoImg";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { HeroSlide } from "@/hooks/useHeroSlidesStore";
+
 
 interface Props {
   slides: HeroSlide[];

@@ -90,6 +90,11 @@ export const HeroScene = () => {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="glass rounded-xl px-4 py-3 md:px-6 md:py-4 border border-white/10 text-right max-w-[80vw]"
             >
+              {current.label && (
+                <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-white/70 mb-1">
+                  {current.label}
+                </div>
+              )}
               <div className="text-sm md:text-base text-white/90 font-medium tracking-wide">
                 {current.caption}
               </div>

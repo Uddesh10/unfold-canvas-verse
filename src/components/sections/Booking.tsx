@@ -48,7 +48,7 @@ export const Booking = () => {
   };
 
   return (
-    <section id="book" className="relative py-28 md:py-40">
+    <section id="book" className="relative py-12 md:py-16">
       <div className="container mx-auto px-6 grid md:grid-cols-12 gap-10">
         <Reveal className="md:col-span-5">
           <div className="text-xs uppercase tracking-[0.35em] text-muted-foreground mb-5">03 — Begin</div>

@@ -1,32 +1,38 @@
-## Hero & page carousel refinements
+# Plan
 
-### 1. Hero title block (`src/three/HeroScene.tsx`)
-- Remove the third row (the per-slide `current.caption` line under the tagline).
-- Remove the `AnimatePresence` / `motion.div` wrapper around the center title so it stays static when the image changes. Keep it as a plain `<div>`.
-- Increase the tagline "Story telling through three perspective" size: bump from `text-[10px] md:text-xs` to roughly `text-xs md:text-sm` with slightly wider tracking (still uppercase).
+## 1. Hero bottom-right caption — show customer name
+File: `src/three/HeroScene.tsx`
 
-### 2. Hero bottom-right caption (`src/three/HeroScene.tsx`)
-- Remove the `current.label` line (Weddings / Spaces / Stories).
-- Keep only `current.caption`, increased in size from `text-[10px] md:text-[11px]` to roughly `text-sm md:text-base`, slightly bolder weight, retaining the glass card and fade/slide animation on slide change.
+In the bottom-right glass card, prepend `current.label` above the caption when present:
+```
+{label}
+{caption}
+```
+Style: label in small uppercase tracking (text-[10px] uppercase tracking-[0.3em] text-white/70), caption stays at text-sm md:text-base. No admin/data changes — `label` already exists on `HeroSlide` and is editable in `HeroSlidesEditor`.
 
-### 3. Mobile-specific carousel images (per-slide field)
-- Extend `HeroSlide` type in `src/hooks/useHeroSlidesStore.ts` with optional `mobileSrc?: string`. Same shape is reused by Stories and Spaces hero stores.
-- In admin editors (`HeroSlidesEditor.tsx`, `StoriesHeroEditor.tsx`, `SpacesHeroEditor.tsx`), add a second `ImageUpload` per slide labeled "Mobile image (portrait, optional)". Falls back to desktop image when empty.
-- Rendering:
-  - `HeroScene.tsx` and `PageCarousel.tsx` pick `isMobile ? (slide.mobileSrc || slide.src) : slide.src` via the existing `useIsMobile()` hook (already used in HeroScene; add it to PageCarousel).
-  - Keep current `object-contain` on mobile / `object-cover` on desktop behavior in HeroScene; apply the same mobile/desktop image-fit logic in `PageCarousel` so portrait mobile images display fully.
+## 2. Reduce vertical spacing between homepage sections
+Files: `src/components/sections/About.tsx`, `Process.tsx`, `Booking.tsx`, `Faq.tsx`, `Photographer.tsx`, `FavouriteShots.tsx`
 
-### 4. Stories albums title (`src/pages/Stories.tsx`)
-- Add a section header above the albums `<Gallery>` matching the FILMS header pattern (same typography, same right-side count). Title: **"FRAMES"** (creative name, parallel to FILMS).
-- Show count as `{items.length} {items.length === 1 ? "frame" : "frames"}`.
+Replace section vertical padding roughly py-24/py-32 → py-12 md:py-16. Only top/bottom padding; no layout or content changes.
 
-### Files touched
-- `src/three/HeroScene.tsx`
-- `src/components/PageCarousel.tsx`
-- `src/hooks/useHeroSlidesStore.ts` (type extension)
-- `src/components/admin/HeroSlidesEditor.tsx`
-- `src/components/admin/StoriesHeroEditor.tsx`
-- `src/components/admin/SpacesHeroEditor.tsx`
-- `src/pages/Stories.tsx`
+## 3. Spaces carousel overlays
+File: `src/pages/Spaces.tsx` — add overlay props to `<PageCarousel>`.
+File: `src/components/PageCarousel.tsx` — accept new optional props:
+- `centerTitle?: { brand: string; tagline: string }`
+- `bottomRightText?: string`
 
-No DB schema changes (slides are stored as JSON in `site_content`, so the new optional `mobileSrc` field is backward compatible).
+When provided, render:
+- Centered overlay (same styling as Hero center block, no glass bg, drop-shadow): brand "Unfold Spaces" (display font) + tagline "Architecture, in its quietest voice." (uppercase tracking).
+- Bottom-right glass card with the blurb: "Photography for architects, interior designers and hospitality brands. We make rooms hold their breath."
+
+These overlays are static across slides (do not animate with slide change), matching the Hero pattern.
+
+## 4. Stories carousel overlays
+File: `src/pages/Stories.tsx` — pass same new props.
+- Center: brand "Unfold Stories" + tagline "THE CITY, UNPOSED." (line break preserved).
+- Bottom-right glass card: same "THE CITY, UNPOSED." text (as requested).
+
+## Notes
+- No DB/schema/edge-function changes.
+- No admin UI changes.
+- Reuses existing `glass`, `text-gradient`, and typography utilities from Hero for visual consistency.

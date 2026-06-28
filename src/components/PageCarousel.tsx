@@ -11,6 +11,8 @@ interface Props {
   loading?: boolean;
   className?: string;
   heightClass?: string;
+  centerTitle?: { brand: string; tagline: string };
+  bottomRightText?: string;
 }
 
 export const PageCarousel = ({
@@ -18,6 +20,8 @@ export const PageCarousel = ({
   loading,
   className = "",
   heightClass = "h-[70svh] min-h-[480px]",
+  centerTitle,
+  bottomRightText,
 }: Props) => {
   const [i, setI] = useState(0);
   const pausedUntilRef = useRef(0);
@@ -67,6 +71,39 @@ export const PageCarousel = ({
 
         </motion.div>
       </AnimatePresence>
+
+      {/* Vignette + overlays */}
+      {(centerTitle || bottomRightText) && (
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+      )}
+
+      {centerTitle && (
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center px-4">
+          <div className="text-center max-w-[92vw] md:max-w-2xl">
+            <div
+              className="font-display leading-[0.95] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)] text-white"
+              style={{ fontSize: "clamp(2rem, 7vw, 5rem)" }}
+            >
+              <span className="text-gradient">{centerTitle.brand.split(" ")[0]}</span>{" "}
+              <span className="font-light italic">{centerTitle.brand.split(" ").slice(1).join(" ")}</span>
+            </div>
+            <div className="mt-3 md:mt-4 text-xs md:text-sm uppercase tracking-[0.4em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] whitespace-pre-line">
+              {centerTitle.tagline}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bottomRightText && (
+        <div className="pointer-events-none absolute bottom-6 right-6 md:bottom-10 md:right-10 z-10">
+          <div className="glass rounded-xl px-4 py-3 md:px-6 md:py-4 border border-white/10 text-right max-w-[80vw]">
+            <div className="text-sm md:text-base text-white/90 font-medium tracking-wide whitespace-pre-line">
+              {bottomRightText}
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {slides.length > 1 && (
         <>

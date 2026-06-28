@@ -25,7 +25,13 @@ const Spaces = () => {
       <main>
         {/* Hero carousel */}
         <section className="relative pt-24">
-          <PageCarousel slides={slides} loading={loading} heightClass="h-[80svh] min-h-[520px]" />
+          <PageCarousel
+            slides={slides}
+            loading={loading}
+            heightClass="h-[80svh] min-h-[520px]"
+            centerTitle={{ brand: "Unfold Spaces", tagline: "Architecture, in its quietest voice." }}
+            bottomRightText={"Photography for architects, interior designers and hospitality brands.\nWe make rooms hold their breath."}
+          />
         </section>
 
         {/* Strict grid gallery */}

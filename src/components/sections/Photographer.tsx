@@ -7,7 +7,7 @@ import { PhotoImg } from "@/components/PhotoImg";
 export const Photographer = () => {
   const { value: p } = usePhotographerStore();
   return (
-    <section id="photographer" className="relative py-24 md:py-32">
+    <section id="photographer" className="relative py-12 md:py-16">
       <div className="container mx-auto px-6 grid md:grid-cols-12 gap-10 items-center">
         <Reveal className="md:col-span-5">
           <div className="relative aspect-[4/5] overflow-hidden rounded-3xl glass">

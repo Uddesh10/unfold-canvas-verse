@@ -27,7 +27,13 @@ const Stories = () => {
       <main className="grain relative">
         {/* Hero carousel */}
         <section className="relative pt-24">
-          <PageCarousel slides={slides} loading={loading} heightClass="h-[80svh] min-h-[520px]" />
+          <PageCarousel
+            slides={slides}
+            loading={loading}
+            heightClass="h-[80svh] min-h-[520px]"
+            centerTitle={{ brand: "Unfold Stories", tagline: "THE CITY,\nUNPOSED." }}
+            bottomRightText={"THE CITY,\nUNPOSED."}
+          />
         </section>
 
         {/* Videos */}

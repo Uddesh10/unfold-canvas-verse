@@ -2,6 +2,7 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 
 export type HeroSlide = {
   src: string;
+  mobileSrc?: string;
   label: string;
   caption: string;
   tint: string;

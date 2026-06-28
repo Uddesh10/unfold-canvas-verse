@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PhotoImg } from "@/components/PhotoImg";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { HeroSlide } from "@/hooks/useHeroSlidesStore";
+
 
 interface Props {
   slides: HeroSlide[];
@@ -19,6 +21,8 @@ export const PageCarousel = ({
 }: Props) => {
   const [i, setI] = useState(0);
   const pausedUntilRef = useRef(0);
+  const isMobile = useIsMobile();
+
 
   useEffect(() => {
     if (slides.length === 0) return;
@@ -52,14 +56,15 @@ export const PageCarousel = ({
           className="absolute inset-0"
         >
           <PhotoImg
-            photo={slides[i].src}
+            photo={(isMobile && slides[i].mobileSrc) ? slides[i].mobileSrc! : slides[i].src}
             variant="full"
             alt={slides[i].caption}
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className={`absolute inset-0 h-full w-full ${isMobile ? "object-contain" : "object-cover object-center"}`}
             draggable={false}
             eager
             loading="eager"
           />
+
         </motion.div>
       </AnimatePresence>
 

@@ -62,9 +62,18 @@ const Stories = () => {
         {/* Gallery */}
         <section className="py-12">
           <div className="container mx-auto px-6">
+            <Reveal>
+              <div className="mb-8 flex items-baseline justify-between">
+                <h2 className="font-bold-display text-3xl md:text-4xl">FRAMES</h2>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {items.length} {items.length === 1 ? "frame" : "frames"}
+                </span>
+              </div>
+            </Reveal>
             <Gallery items={items} variant="masonry" />
           </div>
         </section>
+
 
         {/* CTA */}
         <section className="py-20">

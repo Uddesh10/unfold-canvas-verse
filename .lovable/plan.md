@@ -1,22 +1,32 @@
-## Goal
-Rearrange the hero carousel overlay so the brand name stays centered while slide-specific text moves to the bottom-right.
+## Hero & page carousel refinements
 
-## Current State
-`HeroScene.tsx` renders a single centered glass card containing:
-- "Unfold Studios" wordmark
-- `current.caption` (the slide caption) underneath
+### 1. Hero title block (`src/three/HeroScene.tsx`)
+- Remove the third row (the per-slide `current.caption` line under the tagline).
+- Remove the `AnimatePresence` / `motion.div` wrapper around the center title so it stays static when the image changes. Keep it as a plain `<div>`.
+- Increase the tagline "Story telling through three perspective" size: bump from `text-[10px] md:text-xs` to roughly `text-xs md:text-sm` with slightly wider tracking (still uppercase).
 
-The slide `label` (e.g., "Weddings") is not currently shown.
+### 2. Hero bottom-right caption (`src/three/HeroScene.tsx`)
+- Remove the `current.label` line (Weddings / Spaces / Stories).
+- Keep only `current.caption`, increased in size from `text-[10px] md:text-[11px]` to roughly `text-sm md:text-base`, slightly bolder weight, retaining the glass card and fade/slide animation on slide change.
 
-## Changes
-1. **Keep the center card** with "Unfold Studios" and the caption/tagline as-is.
-2. **Add a bottom-right overlay** that displays the slide `label` and `caption` together in a small, elegant text block.
-3. Ensure the new overlay is responsive and readable over all background images (use a subtle backdrop or shadow if needed).
-4. No changes to slide data, transitions, arrows, or auto-play timing.
+### 3. Mobile-specific carousel images (per-slide field)
+- Extend `HeroSlide` type in `src/hooks/useHeroSlidesStore.ts` with optional `mobileSrc?: string`. Same shape is reused by Stories and Spaces hero stores.
+- In admin editors (`HeroSlidesEditor.tsx`, `StoriesHeroEditor.tsx`, `SpacesHeroEditor.tsx`), add a second `ImageUpload` per slide labeled "Mobile image (portrait, optional)". Falls back to desktop image when empty.
+- Rendering:
+  - `HeroScene.tsx` and `PageCarousel.tsx` pick `isMobile ? (slide.mobileSrc || slide.src) : slide.src` via the existing `useIsMobile()` hook (already used in HeroScene; add it to PageCarousel).
+  - Keep current `object-contain` on mobile / `object-cover` on desktop behavior in HeroScene; apply the same mobile/desktop image-fit logic in `PageCarousel` so portrait mobile images display fully.
 
-## Files
-- `src/three/HeroScene.tsx` — layout change only.
+### 4. Stories albums title (`src/pages/Stories.tsx`)
+- Add a section header above the albums `<Gallery>` matching the FILMS header pattern (same typography, same right-side count). Title: **"FRAMES"** (creative name, parallel to FILMS).
+- Show count as `{items.length} {items.length === 1 ? "frame" : "frames"}`.
 
-## Risk & Notes
-- Minimal scope; purely presentational.
-- Should not affect mobile `object-contain` fix already in place.
+### Files touched
+- `src/three/HeroScene.tsx`
+- `src/components/PageCarousel.tsx`
+- `src/hooks/useHeroSlidesStore.ts` (type extension)
+- `src/components/admin/HeroSlidesEditor.tsx`
+- `src/components/admin/StoriesHeroEditor.tsx`
+- `src/components/admin/SpacesHeroEditor.tsx`
+- `src/pages/Stories.tsx`
+
+No DB schema changes (slides are stored as JSON in `site_content`, so the new optional `mobileSrc` field is backward compatible).

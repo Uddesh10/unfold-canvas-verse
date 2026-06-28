@@ -88,8 +88,15 @@ export const PageHeroEditor = ({ title, description, items, set, save, dirty, sa
             }
           >
             <div className="grid grid-cols-12 gap-3 items-start pt-3">
-              <div className="col-span-12 sm:col-span-4">
-                <ImageUpload value={it.src} onChange={(url) => update(i, { src: url })} aspect="aspect-video" />
+              <div className="col-span-12 sm:col-span-4 space-y-2">
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Desktop image</div>
+                  <ImageUpload value={it.src} onChange={(url) => update(i, { src: url })} aspect="aspect-video" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Mobile image (portrait, optional)</div>
+                  <ImageUpload value={it.mobileSrc || ""} onChange={(url) => update(i, { mobileSrc: url })} aspect="aspect-[3/4]" />
+                </div>
               </div>
               <div className="col-span-12 sm:col-span-8 space-y-2">
                 <div className="grid grid-cols-2 gap-2">
@@ -98,6 +105,7 @@ export const PageHeroEditor = ({ title, description, items, set, save, dirty, sa
                 </div>
               </div>
             </div>
+
           </CollapsibleCard>
         ))}
       </div>

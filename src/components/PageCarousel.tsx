@@ -11,6 +11,8 @@ interface Props {
   loading?: boolean;
   className?: string;
   heightClass?: string;
+  centerTitle?: { brand: string; tagline: string };
+  bottomRightText?: string;
 }
 
 export const PageCarousel = ({
@@ -18,6 +20,8 @@ export const PageCarousel = ({
   loading,
   className = "",
   heightClass = "h-[70svh] min-h-[480px]",
+  centerTitle,
+  bottomRightText,
 }: Props) => {
   const [i, setI] = useState(0);
   const pausedUntilRef = useRef(0);

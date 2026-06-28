@@ -21,6 +21,8 @@ export const PageCarousel = ({
 }: Props) => {
   const [i, setI] = useState(0);
   const pausedUntilRef = useRef(0);
+  const isMobile = useIsMobile();
+
 
   useEffect(() => {
     if (slides.length === 0) return;

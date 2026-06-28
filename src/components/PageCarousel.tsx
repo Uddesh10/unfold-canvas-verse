@@ -56,14 +56,15 @@ export const PageCarousel = ({
           className="absolute inset-0"
         >
           <PhotoImg
-            photo={slides[i].src}
+            photo={(isMobile && slides[i].mobileSrc) ? slides[i].mobileSrc! : slides[i].src}
             variant="full"
             alt={slides[i].caption}
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className={`absolute inset-0 h-full w-full ${isMobile ? "object-contain" : "object-cover object-center"}`}
             draggable={false}
             eager
             loading="eager"
           />
+
         </motion.div>
       </AnimatePresence>
 

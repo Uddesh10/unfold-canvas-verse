@@ -73,7 +73,7 @@ export const PageCarousel = ({
       </AnimatePresence>
 
       {/* Vignette + overlays */}
-      {(centerTitle || bottomRightText) && (
+      {(centerTitle || bottomRightTag || slides[i]?.label || slides[i]?.caption) && (
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
       )}
 
@@ -94,15 +94,38 @@ export const PageCarousel = ({
         </div>
       )}
 
-      {bottomRightText && (
+      {(bottomRightTag || slides[i]?.label || slides[i]?.caption) && (
         <div className="pointer-events-none absolute bottom-6 right-6 md:bottom-10 md:right-10 z-10">
           <div className="glass rounded-xl px-4 py-3 md:px-6 md:py-4 border border-white/10 text-right max-w-[80vw]">
-            <div className="text-sm md:text-base text-white/90 font-medium tracking-wide whitespace-pre-line">
-              {bottomRightText}
-            </div>
+            {bottomRightTag && (
+              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent/80 mb-2">
+                {bottomRightTag}
+              </div>
+            )}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {slides[i]?.label && (
+                  <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-white/70 mb-1">
+                    {slides[i].label}
+                  </div>
+                )}
+                {slides[i]?.caption && (
+                  <div className="text-sm md:text-base text-white/90 font-medium tracking-wide">
+                    {slides[i].caption}
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       )}
+
 
 
       {slides.length > 1 && (

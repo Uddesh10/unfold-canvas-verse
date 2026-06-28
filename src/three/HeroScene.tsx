@@ -32,6 +32,7 @@ export const HeroScene = () => {
   }
 
   const current = slides[i];
+  const imgSrc = (isMobile && current.mobileSrc) ? current.mobileSrc : current.src;
 
   return (
     <div className="absolute inset-0 overflow-hidden bg-black">
@@ -45,7 +46,7 @@ export const HeroScene = () => {
           className="absolute inset-0"
         >
           <PhotoImg
-            photo={current.src}
+            photo={imgSrc}
             variant="full"
             alt={current.caption}
             className={`absolute inset-0 h-full w-full ${
@@ -61,60 +62,42 @@ export const HeroScene = () => {
       {/* Subtle vignette so the glass card always reads well */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
 
-      {/* Centered caption */}
+      {/* Centered title (static across slides) */}
       <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center px-4">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center max-w-[92vw] md:max-w-2xl"
+        <div className="text-center max-w-[92vw] md:max-w-2xl">
+          <div
+            className="font-display leading-[0.95] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]"
+            style={{ fontSize: "clamp(2rem, 7vw, 5rem)" }}
           >
-            <div
-              className="font-display leading-[0.95] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]"
-              style={{ fontSize: "clamp(2rem, 7vw, 5rem)" }}
-            >
-              <span className="text-gradient">Unfold</span>{" "}
-              <span className="font-light italic">Studios</span>
-            </div>
-            <div className="mt-2 md:mt-3 text-[10px] md:text-xs uppercase tracking-[0.35em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
-              Story telling through three perspective
-            </div>
-            {current.caption && (
-              <div className="mt-1 md:mt-2 text-[10px] md:text-[11px] text-white/60 tracking-wide">
-                {current.caption}
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+            <span className="text-gradient">Unfold</span>{" "}
+            <span className="font-light italic">Studios</span>
+          </div>
+          <div className="mt-3 md:mt-4 text-xs md:text-sm uppercase tracking-[0.4em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+            Story telling through three perspective
+          </div>
+        </div>
       </div>
 
-      {/* Bottom-right name + caption */}
-      <div className="pointer-events-none absolute bottom-6 right-6 md:bottom-10 md:right-10 z-10">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -8 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="glass rounded-xl px-4 py-3 md:px-5 md:py-3.5 border border-white/10 text-right"
-          >
-            {current.label && (
-              <div className="text-[11px] md:text-xs uppercase tracking-[0.3em] text-white/80 font-medium">
-                {current.label}
-              </div>
-            )}
-            {current.caption && (
-              <div className="mt-1 text-[10px] md:text-[11px] text-white/60 tracking-wide">
+      {/* Bottom-right caption */}
+      {current.caption && (
+        <div className="pointer-events-none absolute bottom-6 right-6 md:bottom-10 md:right-10 z-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="glass rounded-xl px-4 py-3 md:px-6 md:py-4 border border-white/10 text-right max-w-[80vw]"
+            >
+              <div className="text-sm md:text-base text-white/90 font-medium tracking-wide">
                 {current.caption}
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
+
 
       {slides.length > 1 && (
         <>

@@ -27,3 +27,7 @@ Align the markup and motion with `HeroScene`:
 
 - No changes to slide data, stores, admin editors, or backend — each page still reads its own `spaces_hero_slides` / `stories_hero_slides`.
 - Mobile `mobileSrc` / `object-contain` behavior stays as-is (already matches Hero).
+
+## Also: fix existing build errors in `src/components/ui/chart.tsx`
+
+The recharts v3 upgrade broke the shadcn chart typings (`payload`, `label`, and `LegendProps` picks no longer type-check). Fix by declaring explicit local prop types for `ChartTooltipContent` (active, payload, label, labelFormatter, formatter, color) and for `ChartLegendContent` (payload, verticalAlign) instead of deriving them from recharts' `Tooltip`/`LegendProps`. No runtime/visual change.

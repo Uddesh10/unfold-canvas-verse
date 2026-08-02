@@ -26,14 +26,15 @@ const Stories = () => {
       <Nav />
       <main className="grain relative">
         {/* Hero carousel */}
-        <section className="relative pt-24">
+        <section className="relative">
           <PageCarousel
             slides={slides}
             loading={loading}
-            heightClass="h-[80svh] min-h-[520px]"
+            heightClass="h-[100svh] min-h-[520px]"
             centerTitle={{ brand: "Unfold Stories", tagline: "THE CITY,\nUNPOSED." }}
             bottomRightTag="/// UNFOLD STORIES — FIELD EDITION 07"
           />
+
         </section>
 
         {/* Videos */}

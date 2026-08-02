@@ -92,7 +92,7 @@ export const PageCarousel = ({
         </div>
       )}
 
-      {(bottomRightTag || slides[i]?.label || slides[i]?.caption) && (
+      {(slides[i]?.label || slides[i]?.caption) && (
         <div className="pointer-events-none absolute bottom-6 right-6 md:bottom-10 md:right-10 z-10">
           <AnimatePresence mode="wait">
             <motion.div
@@ -103,11 +103,6 @@ export const PageCarousel = ({
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="glass rounded-xl px-4 py-3 md:px-6 md:py-4 border border-white/10 text-right max-w-[80vw]"
             >
-              {bottomRightTag && (
-                <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent/80 mb-2">
-                  {bottomRightTag}
-                </div>
-              )}
               {slides[i]?.label && (
                 <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-white/70 mb-1">
                   {slides[i].label}

@@ -49,14 +49,14 @@ export const PageCarousel = ({
   }
 
   return (
-    <div className={`relative w-full overflow-hidden ${heightClass} ${className}`}>
+    <div className={`relative w-full overflow-hidden bg-black ${heightClass} ${className}`}>
       <AnimatePresence mode="sync">
         <motion.div
           key={i}
-          initial={{ opacity: 0, scale: 1.06 }}
+          initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
           <PhotoImg
@@ -72,10 +72,8 @@ export const PageCarousel = ({
         </motion.div>
       </AnimatePresence>
 
-      {/* Vignette + overlays */}
-      {(centerTitle || bottomRightTag || slides[i]?.label || slides[i]?.caption) && (
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
-      )}
+      {/* Subtle vignette so the glass card always reads well */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
 
       {centerTitle && (
         <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center px-4">
@@ -96,35 +94,35 @@ export const PageCarousel = ({
 
       {(bottomRightTag || slides[i]?.label || slides[i]?.caption) && (
         <div className="pointer-events-none absolute bottom-6 right-6 md:bottom-10 md:right-10 z-10">
-          <div className="glass rounded-xl px-4 py-3 md:px-6 md:py-4 border border-white/10 text-right max-w-[80vw]">
-            {bottomRightTag && (
-              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent/80 mb-2">
-                {bottomRightTag}
-              </div>
-            )}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -8 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {slides[i]?.label && (
-                  <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-white/70 mb-1">
-                    {slides[i].label}
-                  </div>
-                )}
-                {slides[i]?.caption && (
-                  <div className="text-sm md:text-base text-white/90 font-medium tracking-wide">
-                    {slides[i].caption}
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="glass rounded-xl px-4 py-3 md:px-6 md:py-4 border border-white/10 text-right max-w-[80vw]"
+            >
+              {bottomRightTag && (
+                <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent/80 mb-2">
+                  {bottomRightTag}
+                </div>
+              )}
+              {slides[i]?.label && (
+                <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-white/70 mb-1">
+                  {slides[i].label}
+                </div>
+              )}
+              {slides[i]?.caption && (
+                <div className="text-sm md:text-base text-white/90 font-medium tracking-wide">
+                  {slides[i].caption}
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       )}
+
 
 
 

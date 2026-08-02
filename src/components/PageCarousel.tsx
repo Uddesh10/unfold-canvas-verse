@@ -140,7 +140,7 @@ export const PageCarousel = ({
             type="button"
             onClick={() => go(1)}
             aria-label="Next slide"
-            className="absolute top-1/2 -translate-y-1/2 right-3 md:right-6 z-10 glass rounded-full p-2 md:p-3 hover:glow transition"
+            className="group absolute top-1/2 -translate-y-1/2 right-3 md:right-6 z-10 glass rounded-full p-2 md:p-3 hover:glow transition pointer-events-auto"
           >
             <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
           </button>

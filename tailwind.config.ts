@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Open Sans"', "system-ui", "sans-serif"],
-        display: ['"Open Sans"', "system-ui", "sans-serif"],
+        sans: ['"Work Sans"', "system-ui", "sans-serif"],
+        display: ['"Instrument Serif"', "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -32,6 +32,15 @@ export default {
           1: "hsl(var(--theme-1))",
           2: "hsl(var(--theme-2))",
           3: "hsl(var(--theme-3))",
+        },
+        carousel: {
+          surface: "hsl(var(--carousel-surface))",
+          foreground: "hsl(var(--carousel-foreground))",
+        },
+        footer: {
+          surface: "hsl(var(--footer-surface))",
+          foreground: "hsl(var(--footer-foreground))",
+          accent: "hsl(var(--footer-accent))",
         },
       },
       borderRadius: {

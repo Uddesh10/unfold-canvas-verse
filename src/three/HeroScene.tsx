@@ -1,21 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useHeroSlidesStore } from "@/hooks/useHeroSlidesStore";
 import { PhotoImg } from "@/components/PhotoImg";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CarouselControls } from "@/components/CarouselControls";
 
 export const HeroScene = () => {
   const { items: slides, loading } = useHeroSlidesStore();
   const [i, setI] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
   const pausedUntilRef = useRef(0);
   const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (slides.length === 0) return;
     setI((p) => (p >= slides.length ? 0 : p));
     const t = setInterval(() => {
       if (Date.now() < pausedUntilRef.current) return;
+      setDirection(1);
       setI((p) => (p + 1) % slides.length);
     }, 4500);
     return () => clearInterval(t);
@@ -24,6 +27,7 @@ export const HeroScene = () => {
   const go = (dir: -1 | 1) => {
     if (slides.length === 0) return;
     pausedUntilRef.current = Date.now() + 6000;
+    setDirection(dir);
     setI((p) => (p + dir + slides.length) % slides.length);
   };
 
@@ -35,23 +39,21 @@ export const HeroScene = () => {
   const imgSrc = (isMobile && current.mobileSrc) ? current.mobileSrc : current.src;
 
   return (
-    <div className="absolute inset-0 overflow-hidden bg-black">
+    <div className="absolute inset-0 overflow-hidden bg-carousel-surface">
       <AnimatePresence mode="sync">
         <motion.div
           key={i}
-          initial={{ opacity: 0, scale: 1.08 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, x: reduceMotion ? 0 : direction * 36, scale: reduceMotion ? 1 : 1.035 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: reduceMotion ? 0 : direction * -20, scale: reduceMotion ? 1 : 1.015 }}
+          transition={{ duration: reduceMotion ? 0.25 : 1.25, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
           <PhotoImg
             photo={imgSrc}
             variant="full"
             alt={current.caption}
-            className={`absolute inset-0 h-full w-full ${
-              isMobile ? "object-contain" : "object-cover object-center"
-            }`}
+            className="absolute inset-0 h-full w-full object-cover object-center"
             draggable={false}
             eager
             loading="eager"
@@ -104,26 +106,7 @@ export const HeroScene = () => {
       )}
 
 
-      {slides.length > 1 && (
-        <>
-          <button
-            type="button"
-            onClick={() => go(-1)}
-            aria-label="Previous slide"
-            className="group absolute top-1/2 -translate-y-1/2 left-3 md:left-6 z-10 glass rounded-full p-2 md:p-3 hover:glow transition pointer-events-auto"
-          >
-            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
-          </button>
-          <button
-            type="button"
-            onClick={() => go(1)}
-            aria-label="Next slide"
-            className="group absolute top-1/2 -translate-y-1/2 right-3 md:right-6 z-10 glass rounded-full p-2 md:p-3 hover:glow transition pointer-events-auto"
-          >
-            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
-          </button>
-        </>
-      )}
+      <CarouselControls current={i} total={slides.length} onPrevious={() => go(-1)} onNext={() => go(1)} />
     </div>
   );
 };

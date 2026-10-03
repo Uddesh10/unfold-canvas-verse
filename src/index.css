@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Archivo+Black&family=JetBrains+Mono:wght@400;500&display=swap');
-
 /* ================================================================
    UNFOLD STUDIOS — Design System
    All colors are HSL. Per-vertical theme via [data-theme] on <html>.
@@ -57,9 +55,15 @@
     --shadow-glow: 0 0 80px hsl(var(--glow) / 0.45);
     --shadow-glass: 0 8px 32px hsl(0 0% 0% / 0.4);
 
-    --font-display: 'Cormorant Garamond', serif;
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-body: 'Work Sans', system-ui, sans-serif;
+    --font-mono: 'Work Sans', system-ui, sans-serif;
+
+    --carousel-surface: 225 9% 7%;
+    --carousel-foreground: 43 29% 94%;
+    --footer-surface: 225 9% 7%;
+    --footer-foreground: 43 29% 94%;
+    --footer-accent: 39 59% 59%;
 
     --transition-smooth: cubic-bezier(0.22, 1, 0.36, 1);
   }
@@ -222,6 +226,33 @@
     -webkit-backdrop-filter: blur(28px) saturate(160%);
     border: 1px solid hsl(var(--glass-tint) / 0.25);
     box-shadow: var(--shadow-glass);
+  }
+  .studio-rail {
+    color: hsl(var(--carousel-foreground));
+    background: hsl(var(--carousel-surface) / 0.72);
+    border: 1px solid hsl(var(--carousel-foreground) / 0.16);
+    box-shadow: 0 12px 36px hsl(var(--carousel-surface) / 0.3);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+  }
+  .studio-rail-link {
+    letter-spacing: 0;
+  }
+  .studio-rail-link-active {
+    color: hsl(var(--carousel-surface));
+    background: hsl(var(--carousel-foreground));
+  }
+  .carousel-control {
+    background: hsl(var(--carousel-surface) / 0.46);
+    border: 1px solid hsl(var(--carousel-foreground) / 0.22);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .carousel-control:hover {
+    background: hsl(var(--carousel-surface) / 0.7);
+  }
+  .editorial-footer {
+    background: hsl(var(--footer-surface));
   }
   .text-gradient {
     background: var(--gradient-text);

@@ -1,7 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { verticals } from "@/data/themes";
-import { cn } from "@/lib/utils";
+import { StudioRail } from "@/components/StudioRail";
 
 export const Nav = () => {
   const { pathname } = useLocation();
@@ -21,7 +20,7 @@ export const Nav = () => {
       transition={{ duration: 0.8, delay: 0.2 }}
       className="fixed inset-x-0 top-0 z-50"
     >
-      <div className="container mx-auto flex items-center justify-between px-6 py-5">
+      <div className="container mx-auto grid grid-cols-2 items-center gap-y-3 px-5 py-4 md:grid-cols-[1fr_auto_1fr] md:px-6 md:py-5">
         <Link to="/" className="group flex items-center gap-2" aria-label="Unfold Studios — home">
           <span className="text-base font-display font-medium tracking-[0.25em] uppercase">
             Unfold
@@ -29,30 +28,14 @@ export const Nav = () => {
           <span className="h-1 w-1 rounded-full bg-foreground/60 group-hover:bg-primary transition-colors" />
         </Link>
 
-        {pathname !== "/" && (
-          <nav className="hidden md:flex items-center gap-1 glass rounded-full px-2 py-1.5">
-            {verticals.map((v) => {
-              const active = pathname === v.path;
-              return (
-                <Link
-                  key={v.key}
-                  to={v.path}
-                  className={cn(
-                    "px-4 py-1.5 text-xs uppercase tracking-[0.2em] rounded-full transition-all",
-                    active ? "bg-foreground text-background" : "text-foreground/70 hover:text-foreground"
-                  )}
-                >
-                  {v.label}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
+        <div className="order-3 col-span-2 mx-auto md:order-none md:col-span-1">
+          <StudioRail />
+        </div>
 
         <a
           href="/#book"
           onClick={handleBook}
-          className="text-xs uppercase tracking-[0.2em] glass rounded-full px-4 py-2 hover:glow transition-all cursor-pointer"
+          className="justify-self-end text-xs uppercase tracking-[0.2em] glass rounded-full px-4 py-2 hover:glow transition-all cursor-pointer"
         >
           Book
         </a>
